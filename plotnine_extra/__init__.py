@@ -221,7 +221,7 @@ from .utils import (
     median_range,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 # Extend plotnine's __all__ with our extras
 _extra_all = (
