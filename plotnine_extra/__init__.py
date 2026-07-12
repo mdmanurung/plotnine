@@ -91,6 +91,22 @@ from .composition import (
     plot_spacer,
 )
 from .coords import apply_axes_inside, coord_axes_inside
+from .facets import (  # noqa: E402
+    facet_grid2,
+    facet_manual,
+    facet_nested,
+    facet_nested_wrap,
+    facet_wrap2,
+    facetted_pos_scales,
+    scale_x_facet,
+    scale_y_facet,
+)
+from .facets.strips import (  # noqa: E402
+    strip_nested,
+    strip_split,
+    strip_tag,
+    strip_themed,
+)
 from .geoms import (
     annotation_stripes,
     geom_beeswarm,
@@ -222,7 +238,7 @@ from .utils import (
     median_range,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 # Extend plotnine's __all__ with our extras
 _extra_all = (
@@ -307,6 +323,19 @@ _extra_all = (
     "guide_axis_truncated",
     "guide_dendro",
     "guide_stringlegend",
+    # Facets and strips
+    "facet_grid2",
+    "facet_manual",
+    "facet_nested",
+    "facet_nested_wrap",
+    "facet_wrap2",
+    "facetted_pos_scales",
+    "scale_x_facet",
+    "scale_y_facet",
+    "strip_nested",
+    "strip_split",
+    "strip_tag",
+    "strip_themed",
     # Coords
     "coord_axes_inside",
     "apply_axes_inside",

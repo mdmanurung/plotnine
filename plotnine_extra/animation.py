@@ -136,9 +136,7 @@ class PlotnineAnimation(ArtistAnimation):
                     start = artist_offsets[name][i]
                     new_artists = getattr(ax, name)[start:]
                     frame_artists.extend(new_artists)
-                    artist_offsets[name][i] += len(
-                        new_artists
-                    )
+                    artist_offsets[name][i] += len(new_artists)
             return frame_artists
 
         def set_scale_limits(scales: list[scale]):
@@ -157,9 +155,7 @@ class PlotnineAnimation(ArtistAnimation):
                 ae = sc.aesthetics[0]
                 scale_limits[ae] = sc.final_limits
 
-        def check_scale_limits(
-            scales: list[scale], frame_no: int
-        ):
+        def check_scale_limits(scales: list[scale], frame_no: int):
             """
             Check limits of the scales of a plot in the
             animation.
@@ -220,9 +216,7 @@ class PlotnineAnimation(ArtistAnimation):
                 scales = first_plot._build_objs.scales
                 set_scale_limits(scales)
             else:
-                plot = self._draw_animation_plot(
-                    p, first_plot
-                )
+                plot = self._draw_animation_plot(p, first_plot)
                 check_scale_limits(plot.scales, frame_no)
 
             artists.append(get_frame_artists(axs))
@@ -234,9 +228,7 @@ class PlotnineAnimation(ArtistAnimation):
         plt.close(figure)
         return figure, artists
 
-    def _draw_animation_plot(
-        self, plot: ggplot, first_plot: ggplot
-    ) -> ggplot:
+    def _draw_animation_plot(self, plot: ggplot, first_plot: ggplot) -> ggplot:
         """
         Draw a plot/frame of the animation
 

@@ -10,7 +10,6 @@ import pandas as pd
 import pytest
 from scipy import stats as sp_stats
 
-from plotnine_extra.stats.stat_pwc import _adjust_pvalues
 from plotnine_extra.stats._common import (
     preserve_panel_columns,
 )
@@ -28,33 +27,27 @@ from plotnine_extra.stats._stat_test import (
     StatTestResult,
     run_stat_test,
 )
-
+from plotnine_extra.stats.stat_pwc import _adjust_pvalues
 
 # ---- preserve_panel_columns ----
 
 
 class TestPreservePanelColumns:
     def test_preserves_panel(self):
-        data = pd.DataFrame(
-            {"PANEL": [1, 1], "group": [1, 1], "x": [1, 2]}
-        )
+        data = pd.DataFrame({"PANEL": [1, 1], "group": [1, 1], "x": [1, 2]})
         result = pd.DataFrame({"x": [1.5]})
         out = preserve_panel_columns(result, data)
         assert "PANEL" in out.columns
         assert out["PANEL"].iloc[0] == 1
 
     def test_preserves_group(self):
-        data = pd.DataFrame(
-            {"PANEL": [2, 2], "group": [3, 3], "x": [1, 2]}
-        )
+        data = pd.DataFrame({"PANEL": [2, 2], "group": [3, 3], "x": [1, 2]})
         result = pd.DataFrame({"x": [1.5]})
         out = preserve_panel_columns(result, data)
         assert out["group"].iloc[0] == 3
 
     def test_empty_result_passthrough(self):
-        data = pd.DataFrame(
-            {"PANEL": [1], "group": [1], "x": [1]}
-        )
+        data = pd.DataFrame({"PANEL": [1], "group": [1], "x": [1]})
         result = pd.DataFrame()
         out = preserve_panel_columns(result, data)
         assert out.empty
@@ -66,12 +59,8 @@ class TestPreservePanelColumns:
         assert "PANEL" not in out.columns
 
     def test_panel_already_in_result(self):
-        data = pd.DataFrame(
-            {"PANEL": [1], "group": [1], "x": [1]}
-        )
-        result = pd.DataFrame(
-            {"x": [1.5], "PANEL": [99], "group": [99]}
-        )
+        data = pd.DataFrame({"PANEL": [1], "group": [1], "x": [1]})
+        result = pd.DataFrame({"x": [1.5], "PANEL": [99], "group": [99]})
         out = preserve_panel_columns(result, data)
         # Should not overwrite existing columns
         assert out["PANEL"].iloc[0] == 99
@@ -136,9 +125,7 @@ class TestComputeLabelPosition:
 
 class TestFormatStatLabel:
     def test_basic_template(self):
-        result = format_stat_label(
-            "R = {r}, p = {p}", r=0.95, p=0.001
-        )
+        result = format_stat_label("R = {r}, p = {p}", r=0.95, p=0.001)
         assert result == "R = 0.95, p = 0.001"
 
     def test_no_placeholders(self):
@@ -175,15 +162,11 @@ class TestFormatPValue:
         assert result == "p = 0.05"
 
     def test_no_leading_zero(self):
-        result = format_p_value(
-            0.05, digits=3, leading_zero=False
-        )
+        result = format_p_value(0.05, digits=3, leading_zero=False)
         assert result == "p = .050"
 
     def test_no_leading_zero_below_threshold(self):
-        result = format_p_value(
-            0.0001, digits=3, leading_zero=False
-        )
+        result = format_p_value(0.0001, digits=3, leading_zero=False)
         assert result == "p < .001"
 
     def test_one(self):
@@ -302,9 +285,7 @@ class TestRunStatTest:
     def test_ttest_paired(self):
         g1 = np.array([1.0, 2, 3, 4, 5])
         g2 = np.array([2.0, 3, 4, 5, 6])
-        r = run_stat_test(
-            [g1, g2], method="t.test", paired=True
-        )
+        r = run_stat_test([g1, g2], method="t.test", paired=True)
         assert r.method == "Paired t-test"
         assert r.df == 4
 
@@ -324,16 +305,12 @@ class TestRunStatTest:
     def test_wilcox_paired(self):
         g1 = np.array([1.0, 2, 3, 4, 5])
         g2 = np.array([2.0, 3, 4, 5, 6])
-        r = run_stat_test(
-            [g1, g2], method="wilcox.test", paired=True
-        )
+        r = run_stat_test([g1, g2], method="wilcox.test", paired=True)
         assert r.method == "Wilcoxon signed-rank test"
 
     def test_wilcox_wrong_groups(self):
         with pytest.raises(ValueError, match="exactly 2"):
-            run_stat_test(
-                [np.array([1.0])], method="wilcox.test"
-            )
+            run_stat_test([np.array([1.0])], method="wilcox.test")
 
     def test_anova(self):
         g1 = np.array([1.0, 2, 3])
@@ -348,9 +325,7 @@ class TestRunStatTest:
         g1 = np.array([1.0, 2, 3])
         g2 = np.array([4.0, 5, 6])
         g3 = np.array([7.0, 8, 9])
-        r = run_stat_test(
-            [g1, g2, g3], method="kruskal.test"
-        )
+        r = run_stat_test([g1, g2, g3], method="kruskal.test")
         assert r.method == "Kruskal-Wallis"
         assert r.df == 2
 
@@ -358,9 +333,7 @@ class TestRunStatTest:
         g1 = np.array([1.0, 2, 3, 4, 5])
         g2 = np.array([2.0, 3, 4, 5, 6])
         g3 = np.array([3.0, 4, 5, 6, 7])
-        r = run_stat_test(
-            [g1, g2, g3], method="friedman.test"
-        )
+        r = run_stat_test([g1, g2, g3], method="friedman.test")
         assert r.method == "Friedman test"
         assert r.df == 2
 
@@ -368,18 +341,14 @@ class TestRunStatTest:
         g1 = np.array([1.0, 2, 3, 4, 5])
         g2 = np.array([5.0, 6, 7, 8, 9])
         g3 = np.array([3.0, 4, 5, 6, 7])
-        r = run_stat_test(
-            [g1, g2, g3], method="welch.anova"
-        )
+        r = run_stat_test([g1, g2, g3], method="welch.anova")
         assert r.method == "Welch's ANOVA"
         assert r.df == 2
         assert r.df2 is not None
 
     def test_unknown_method(self):
         with pytest.raises(ValueError, match="Unknown"):
-            run_stat_test(
-                [np.array([1.0])], method="nonexistent"
-            )
+            run_stat_test([np.array([1.0])], method="nonexistent")
 
     def test_ttest_alternative(self):
         g1 = np.array([1.0, 2, 3, 4, 5])
@@ -394,9 +363,7 @@ class TestRunStatTest:
     def test_pearson_correlation(self):
         x = np.array([1.0, 2, 3, 4, 5])
         y = np.array([2.0, 4, 6, 8, 10])
-        r = run_stat_test(
-            [x, y], method="pearson"
-        )
+        r = run_stat_test([x, y], method="pearson")
         assert r.method == "Pearson correlation"
         assert abs(r.statistic - 1.0) < 1e-6
         assert r.estimate == r.statistic
@@ -404,28 +371,20 @@ class TestRunStatTest:
     def test_spearman_correlation(self):
         x = np.array([1.0, 2, 3, 4, 5])
         y = np.array([2.0, 4, 6, 8, 10])
-        r = run_stat_test(
-            [x, y], method="spearman"
-        )
+        r = run_stat_test([x, y], method="spearman")
         assert r.method == "Spearman correlation"
         assert abs(r.statistic - 1.0) < 1e-6
 
     def test_kendall_correlation(self):
         x = np.array([1.0, 2, 3, 4, 5])
         y = np.array([2.0, 4, 6, 8, 10])
-        r = run_stat_test(
-            [x, y], method="kendall"
-        )
+        r = run_stat_test([x, y], method="kendall")
         assert r.method == "Kendall correlation"
         assert abs(r.statistic - 1.0) < 1e-6
 
     def test_correlation_wrong_groups(self):
-        with pytest.raises(
-            ValueError, match="exactly 2"
-        ):
-            run_stat_test(
-                [np.array([1.0])], method="pearson"
-            )
+        with pytest.raises(ValueError, match="exactly 2"):
+            run_stat_test([np.array([1.0])], method="pearson")
 
     def test_correlation_alternative(self):
         x = np.array([1.0, 2, 3, 4, 5])

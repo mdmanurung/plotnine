@@ -9,7 +9,7 @@ the ggplot pipeline.
 import numpy as np
 import pandas as pd
 import pytest
-from plotnine import aes, geom_point, geom_text, ggplot
+from plotnine import aes, geom_point, ggplot
 
 from plotnine_extra import (
     stat_anova_test,
@@ -39,14 +39,13 @@ from plotnine_extra.stats._stat_test import (
 
 # ---- Test data ----
 
-np.random.seed(42)
+rng = np.random.default_rng(42)
 
 # Simple scatter data
 scatter_data = pd.DataFrame(
     {
         "x": np.arange(20, dtype=float),
-        "y": np.arange(20, dtype=float) * 2 + 1
-        + np.random.normal(0, 1, 20),
+        "y": np.arange(20, dtype=float) * 2 + 1 + rng.normal(0, 1, 20),
     }
 )
 
@@ -56,9 +55,9 @@ grouped_data = pd.DataFrame(
         "x": np.repeat(["A", "B", "C"], 15),
         "y": np.concatenate(
             [
-                np.random.normal(5, 1, 15),
-                np.random.normal(7, 1, 15),
-                np.random.normal(6, 1.5, 15),
+                rng.normal(5, 1, 15),
+                rng.normal(7, 1, 15),
+                rng.normal(6, 1.5, 15),
             ]
         ),
     }
@@ -97,58 +96,46 @@ class TestPFormat:
 
 class TestStatTest:
     def test_ttest(self):
-        g1 = np.random.normal(5, 1, 30)
-        g2 = np.random.normal(7, 1, 30)
-        result = run_stat_test(
-            [g1, g2], method="t.test"
-        )
+        g1 = rng.normal(5, 1, 30)
+        g2 = rng.normal(7, 1, 30)
+        result = run_stat_test([g1, g2], method="t.test")
         assert result.p_value < 0.05
         assert result.method == "Welch Two Sample t-test"
 
     def test_wilcox(self):
-        g1 = np.random.normal(5, 1, 30)
-        g2 = np.random.normal(7, 1, 30)
-        result = run_stat_test(
-            [g1, g2], method="wilcox.test"
-        )
+        g1 = rng.normal(5, 1, 30)
+        g2 = rng.normal(7, 1, 30)
+        result = run_stat_test([g1, g2], method="wilcox.test")
         assert result.p_value < 0.05
         assert result.method == "Wilcoxon rank sum test"
 
     def test_anova(self):
-        g1 = np.random.normal(5, 1, 30)
-        g2 = np.random.normal(7, 1, 30)
-        g3 = np.random.normal(6, 1, 30)
-        result = run_stat_test(
-            [g1, g2, g3], method="anova"
-        )
+        g1 = rng.normal(5, 1, 30)
+        g2 = rng.normal(7, 1, 30)
+        g3 = rng.normal(6, 1, 30)
+        result = run_stat_test([g1, g2, g3], method="anova")
         assert result.method == "One-way ANOVA"
         assert result.df == 2
 
     def test_kruskal(self):
-        g1 = np.random.normal(5, 1, 30)
-        g2 = np.random.normal(7, 1, 30)
-        g3 = np.random.normal(6, 1, 30)
-        result = run_stat_test(
-            [g1, g2, g3], method="kruskal.test"
-        )
+        g1 = rng.normal(5, 1, 30)
+        g2 = rng.normal(7, 1, 30)
+        g3 = rng.normal(6, 1, 30)
+        result = run_stat_test([g1, g2, g3], method="kruskal.test")
         assert result.method == "Kruskal-Wallis"
 
     def test_welch_anova(self):
-        g1 = np.random.normal(5, 1, 30)
-        g2 = np.random.normal(7, 2, 30)
-        g3 = np.random.normal(6, 0.5, 30)
-        result = run_stat_test(
-            [g1, g2, g3], method="welch.anova"
-        )
+        g1 = rng.normal(5, 1, 30)
+        g2 = rng.normal(7, 2, 30)
+        g3 = rng.normal(6, 0.5, 30)
+        result = run_stat_test([g1, g2, g3], method="welch.anova")
         assert result.method == "Welch's ANOVA"
 
     def test_friedman(self):
         g1 = np.array([1.0, 2, 3, 4, 5])
         g2 = np.array([2.0, 3, 4, 5, 6])
         g3 = np.array([3.0, 4, 5, 6, 7])
-        result = run_stat_test(
-            [g1, g2, g3], method="friedman.test"
-        )
+        result = run_stat_test([g1, g2, g3], method="friedman.test")
         assert result.method == "Friedman test"
 
 
@@ -165,9 +152,7 @@ class TestStatMean:
         p.draw_test()
 
     def test_mean_values(self):
-        data = pd.DataFrame(
-            {"x": [1.0, 2, 3], "y": [4.0, 5, 6]}
-        )
+        data = pd.DataFrame({"x": [1.0, 2, 3], "y": [4.0, 5, 6]})
         s = stat_mean()
         result = s.compute_group(data, None)
         assert result["x"].iloc[0] == 2.0
@@ -176,10 +161,7 @@ class TestStatMean:
 
 class TestStatChull:
     def test_compute(self):
-        p = (
-            ggplot(scatter_data, aes("x", "y"))
-            + stat_chull()
-        )
+        p = ggplot(scatter_data, aes("x", "y")) + stat_chull()
         p.draw_test()
 
     def test_hull_points(self):
@@ -196,9 +178,7 @@ class TestStatChull:
         assert len(result) == 5
 
     def test_too_few_points(self):
-        data = pd.DataFrame(
-            {"x": [1.0, 2], "y": [3.0, 4]}
-        )
+        data = pd.DataFrame({"x": [1.0, 2], "y": [3.0, 4]})
         s = stat_chull()
         result = s.compute_group(data, None)
         # With < 3 points, returns original data
@@ -207,10 +187,7 @@ class TestStatChull:
 
 class TestStatStars:
     def test_compute(self):
-        p = (
-            ggplot(scatter_data, aes("x", "y"))
-            + stat_stars()
-        )
+        p = ggplot(scatter_data, aes("x", "y")) + stat_stars()
         p.draw_test()
 
     def test_star_segments(self):
@@ -227,9 +204,7 @@ class TestStatStars:
         assert all(result["x"] == 2.0)
         assert all(result["y"] == 2.0)
         # xend/yend should be original values
-        np.testing.assert_array_equal(
-            result["xend"].values, [0, 2, 4]
-        )
+        np.testing.assert_array_equal(result["xend"].values, [0, 2, 4])
 
 
 # ---- Tier 1 continued ----
@@ -249,9 +224,7 @@ class TestStatCentralTendency:
         assert result["x"].iloc[0] == 3.0
 
     def test_mode(self):
-        data = pd.DataFrame(
-            {"x": [1.0, 2, 2, 3, 3, 3]}
-        )
+        data = pd.DataFrame({"x": [1.0, 2, 2, 3, 3, 3]})
         s = stat_central_tendency(type="mode")
         result = s.compute_group(data, None)
         assert result["x"].iloc[0] == 3.0
@@ -275,8 +248,8 @@ class TestStatConfEllipse:
     def test_ellipse_points(self):
         data = pd.DataFrame(
             {
-                "x": np.random.normal(0, 1, 50),
-                "y": np.random.normal(0, 1, 50),
+                "x": rng.normal(0, 1, 50),
+                "y": rng.normal(0, 1, 50),
             }
         )
         s = stat_conf_ellipse(npoint=50)
@@ -284,9 +257,7 @@ class TestStatConfEllipse:
         assert len(result) == 50
 
     def test_too_few_points(self):
-        data = pd.DataFrame(
-            {"x": [1.0, 2], "y": [3.0, 4]}
-        )
+        data = pd.DataFrame({"x": [1.0, 2], "y": [3.0, 4]})
         s = stat_conf_ellipse()
         result = s.compute_group(data, None)
         assert len(result) == 0
@@ -297,9 +268,7 @@ class TestStatConfEllipse:
 
 class TestStatOverlayNormalDensity:
     def test_compute(self):
-        data = pd.DataFrame(
-            {"x": np.random.normal(0, 1, 100)}
-        )
+        data = pd.DataFrame({"x": rng.normal(0, 1, 100)})
         s = stat_overlay_normal_density(n=50)
         result = s.compute_group(data, None)
         assert len(result) == 50
@@ -308,9 +277,7 @@ class TestStatOverlayNormalDensity:
         assert all(result["density"] > 0)
 
     def test_zero_std(self):
-        data = pd.DataFrame(
-            {"x": [5.0, 5.0, 5.0]}
-        )
+        data = pd.DataFrame({"x": [5.0, 5.0, 5.0]})
         s = stat_overlay_normal_density()
         result = s.compute_group(data, None)
         assert len(result) == 0
@@ -335,11 +302,7 @@ class TestStatCor:
         assert "τ =" in result["label"].iloc[0]
 
     def test_integration(self):
-        p = (
-            ggplot(scatter_data, aes("x", "y"))
-            + geom_point()
-            + stat_cor()
-        )
+        p = ggplot(scatter_data, aes("x", "y")) + geom_point() + stat_cor()
         p.draw_test()
 
 
@@ -352,9 +315,7 @@ class TestStatReglineEquation:
         assert result["rr"].iloc[0] > 0.8
 
     def test_polynomial(self):
-        s = stat_regline_equation(
-            formula="y ~ poly(x, 2)"
-        )
+        s = stat_regline_equation(formula="y ~ poly(x, 2)")
         result = s.compute_group(scatter_data, None)
         assert "label" in result.columns
 
@@ -398,9 +359,9 @@ class TestStatFriedmanTest:
                 "x": np.repeat(["T1", "T2", "T3"], 10),
                 "y": np.concatenate(
                     [
-                        np.random.normal(5, 1, 10),
-                        np.random.normal(7, 1, 10),
-                        np.random.normal(6, 1, 10),
+                        rng.normal(5, 1, 10),
+                        rng.normal(7, 1, 10),
+                        rng.normal(6, 1, 10),
                     ]
                 ),
                 "subject": np.tile(range(10), 3),
@@ -427,9 +388,7 @@ class TestStatCompareMeans:
         p = (
             ggplot(grouped_data, aes("x", "y"))
             + geom_point()
-            + stat_compare_means(
-                comparisons=[(1, 2), (2, 3)]
-            )
+            + stat_compare_means(comparisons=[(1, 2), (2, 3)])
         )
         p.draw_test()
 
@@ -470,9 +429,7 @@ class TestStatPvalueManual:
                 "y_position": [10, 12],
             }
         )
-        layers = stat_pvalue_manual(
-            pval_data, hide_ns=True
-        )
+        layers = stat_pvalue_manual(pval_data, hide_ns=True)
         # Only significant result should remain
         assert len(layers) > 0
 
@@ -485,9 +442,7 @@ class TestStatPvalueManual:
                 "y_position": [10],
             }
         )
-        layers = stat_pvalue_manual(
-            pval_data, label="p.signif"
-        )
+        layers = stat_pvalue_manual(pval_data, label="p.signif")
         assert len(layers) > 0
 
 
@@ -507,16 +462,13 @@ class TestGeomBracket:
                 "label": ["***"],
             }
         )
-        p = (
-            ggplot(bracket_data)
-            + geom_bracket(
-                aes(
-                    xmin="xmin",
-                    xmax="xmax",
-                    y="y",
-                    label="label",
-                ),
-            )
+        p = ggplot(bracket_data) + geom_bracket(
+            aes(
+                xmin="xmin",
+                xmax="xmax",
+                y="y",
+                label="label",
+            ),
         )
         # Just check it can be constructed
         assert p is not None
@@ -528,11 +480,7 @@ class TestGeomBracket:
 class TestStatPwc:
     def test_all_pairwise(self):
         """Test all pairwise comparisons (default)."""
-        p = (
-            ggplot(grouped_data, aes("x", "y"))
-            + geom_point()
-            + stat_pwc()
-        )
+        p = ggplot(grouped_data, aes("x", "y")) + geom_point() + stat_pwc()
         p.draw_test()
 
     def test_ref_group(self):

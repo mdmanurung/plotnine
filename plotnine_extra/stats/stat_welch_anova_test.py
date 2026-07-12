@@ -63,7 +63,13 @@ class stat_welch_anova_test(_base_stat_test):
         "p_digits": 3,
     }
     CREATES = {
-        "label", "p", "p_signif", "f", "df1", "df2", "method",
+        "label",
+        "p",
+        "p_signif",
+        "f",
+        "df1",
+        "df2",
+        "method",
     }
 
     _test_method = "welch.anova"
@@ -80,9 +86,7 @@ class stat_welch_anova_test(_base_stat_test):
         groups: list[np.ndarray],
     ) -> pd.DataFrame:
         df1 = result.df if result.df is not None else np.nan
-        df2 = (
-            result.df2 if result.df2 is not None else np.nan
-        )
+        df2 = result.df2 if result.df2 is not None else np.nan
         label = (
             f"Welch's ANOVA, F({df1:.0f}, {df2:.1f})"
             f" = {result.statistic:.2f}, {p_str}"

@@ -8,6 +8,9 @@ from typing import TYPE_CHECKING, Literal
 
 from plotnine.facets.facet_grid import facet_grid
 
+from ..guides import apply_axis_guides
+from .scale_facet import apply_scale_facets
+
 if TYPE_CHECKING:
     from typing import Optional, Sequence
 
@@ -155,5 +158,14 @@ class facet_grid2(facet_grid):
             self.plot, "_facetted_pos_scales"
         ):
             self.plot._facetted_pos_scales.apply(scales)
+        plot = getattr(self, "plot", None)
+        scale_facets = getattr(self, "_scale_facets", None)
+        if scale_facets is None:
+            scale_facets = getattr(plot, "_scale_facets", [])
+        apply_scale_facets(scales, layout, scale_facets)
 
         return scales
+
+    def set_limits_breaks_and_labels(self, panel_params, ax):
+        super().set_limits_breaks_and_labels(panel_params, ax)
+        apply_axis_guides(self, panel_params, ax)

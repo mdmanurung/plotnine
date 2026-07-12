@@ -61,10 +61,7 @@ class _base_stat_test(stat):
 
         The default groups by the ``"x"`` column.
         """
-        return [
-            grp["y"].to_numpy(dtype=float)
-            for _, grp in data.groupby("x")
-        ]
+        return [grp["y"].to_numpy(dtype=float) for _, grp in data.groupby("x")]
 
     def _build_result(
         self,
@@ -91,11 +88,7 @@ class _base_stat_test(stat):
                 "p": [result.p_value],
                 "p_signif": [p_signif],
                 "statistic": [result.statistic],
-                "df": [
-                    result.df
-                    if result.df is not None
-                    else np.nan
-                ],
+                "df": [result.df if result.df is not None else np.nan],
                 "method": [result.method],
             }
         )
@@ -111,14 +104,10 @@ class _base_stat_test(stat):
         if len(groups) < self._min_groups:
             return pd.DataFrame()
 
-        result = run_stat_test(
-            groups, method=self._test_method
-        )
+        result = run_stat_test(groups, method=self._test_method)
 
         p_digits = self.params["p_digits"]
-        p_str = format_p_value(
-            result.p_value, digits=p_digits
-        )
+        p_str = format_p_value(result.p_value, digits=p_digits)
         p_signif = p_to_signif(result.p_value)
 
         x_pos = compute_label_position(
@@ -133,7 +122,12 @@ class _base_stat_test(stat):
         )
 
         result_df = self._build_result(
-            result, p_str, p_signif,
-            x_pos, y_pos, data, groups,
+            result,
+            p_str,
+            p_signif,
+            x_pos,
+            y_pos,
+            data,
+            groups,
         )
         return preserve_panel_columns(result_df, data)

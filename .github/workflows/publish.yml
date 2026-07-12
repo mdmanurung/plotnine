@@ -20,15 +20,55 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install build tools
-        run: pip install build
+        run: pip install build twine
+      - name: Read package version
+        id: version
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import tomllib
+          with open("pyproject.toml", "rb") as fh:
+              version = tomllib.load(fh)["project"]["version"]
+          print(f"version={version}")
+          PY
+      - name: Guard release tag
+        if: github.event_name == 'release'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          expected="refs/tags/v${VERSION}"
+          if [ "${GITHUB_REF}" != "${expected}" ]; then
+            echo "Release tag ${GITHUB_REF} does not match ${expected}" >&2
+            exit 1
+          fi
       - name: Build sdist and wheel
         run: python -m build
+      - name: Check distribution metadata
+        run: python -m twine check dist/*
+      - name: Install wheel and smoke-test exports
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python -m venv /tmp/plotnine-extra-publish-smoke
+          /tmp/plotnine-extra-publish-smoke/bin/python -m pip install --upgrade pip
+          /tmp/plotnine-extra-publish-smoke/bin/python -m pip install dist/*.whl
+          cd /tmp
+          /tmp/plotnine-extra-publish-smoke/bin/python - <<'PY'
+          from plotnine_extra import *  # noqa: F403
+          import os
+          import plotnine_extra
+
+          assert plotnine_extra.__version__ == os.environ["VERSION"]
+          assert callable(ggplot)  # noqa: F405
+          assert callable(geom_pointdensity)  # noqa: F405
+          PY
       - name: Upload distribution artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -59,7 +99,7 @@ jobs:
   publish-pypi:
     name: Publish to PyPI
     needs: build
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')
+    if: (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')) && github.ref == format('refs/tags/v{0}', needs.build.outputs.version)
     runs-on: ubuntu-latest
     environment:
       name: pypi

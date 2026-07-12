@@ -3,7 +3,6 @@
 import numpy as np
 import pandas as pd
 import pytest
-from plotnine import aes, geom_point, ggplot
 
 from plotnine_extra import (
     coord_axes_inside,
@@ -160,9 +159,7 @@ def test_position_disjoint_ranges_assigns_rows():
             "xmax": [3, 4, 4, 6],
         }
     )
-    out = pos.compute_layer(
-        d, {"extend": 0, "stepsize": 1}, layout=None
-    )
+    out = pos.compute_layer(d, {"extend": 0, "stepsize": 1}, layout=None)
     # Three of the four overlap; the fourth is disjoint
     assert out["y"].nunique() >= 2
 
@@ -177,27 +174,6 @@ def test_geom_box_constructible():
 
 def test_geom_text_aimed_setup_data():
     g = geom_text_aimed()
-    d = pd.DataFrame(
-        {
-            "x": [0.0, 1.0],
-            "y": [0.0, 1.0],
-            "xend": [1.0, 2.0],
-            "yend": [0.0, 1.0],
-            "label": ["a", "b"],
-            "PANEL": [1, 1],
-            "group": [1, 1],
-            "size": [11, 11],
-            "colour": ["black", "black"],
-            "alpha": [1.0, 1.0],
-            "angle": [0, 0],
-            "fontstyle": ["normal", "normal"],
-            "fontweight": ["normal", "normal"],
-            "fontfamily": ["", ""],
-            "lineheight": [1.0, 1.0],
-            "ha": ["center", "center"],
-            "va": ["center", "center"],
-        }
-    )
     # Should not raise even though we don't draw
     assert g is not None
 

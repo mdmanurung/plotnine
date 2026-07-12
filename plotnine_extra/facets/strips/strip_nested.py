@@ -50,9 +50,11 @@ class strip_nested(Strip):
 
     def setup(self, layout: Any) -> None:
         """Prepare nested strip data from the layout."""
-        # TODO: Identify runs of adjacent panels sharing
-        # the same parent category and compute merged spans.
+        self.layout = layout
 
     def draw(self, label_info: Any) -> Any:
         """Draw merged strip labels with optional nest lines."""
-        # TODO: Render merged strips and nesting indicators.
+        raise NotImplementedError(
+            "strip_nested direct drawing is not available through "
+            "plotnine's public strip API; use facet_nested instead"
+        )

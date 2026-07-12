@@ -38,5 +38,7 @@ class strip_split(Strip):
 
     def draw(self, label_info: Any) -> Any:
         """Draw strips on their assigned sides."""
-        # TODO: Route each variable's strip to the
-        # specified panel side.
+        raise NotImplementedError(
+            "strip_split requires plotnine strip-side routing hooks that "
+            "are not available in plotnine 0.15/0.16"
+        )

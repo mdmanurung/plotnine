@@ -14,6 +14,11 @@ from plotnine.positions.position import position
 
 from ._beeswarm_algorithms import corral_points, offset_beeswarm
 
+_VALID_METHODS = {"swarm", "compactswarm", "center", "centre", "hex", "square"}
+_VALID_PRIORITIES = {"ascending", "descending", "density", "random", "none"}
+_VALID_SIDES = {-1, 0, 1}
+_VALID_CORRALS = {"none", "gutter", "wrap", "random", "omit"}
+
 if TYPE_CHECKING:
     from typing import Optional
 
@@ -72,6 +77,10 @@ class position_beeswarm(position):
         corral: str = "none",
         corral_width: float = 0.9,
     ):
+        _validate_choice("method", method, _VALID_METHODS)
+        _validate_choice("priority", priority, _VALID_PRIORITIES)
+        _validate_choice("side", side, _VALID_SIDES)
+        _validate_choice("corral", corral, _VALID_CORRALS)
         self.params = {
             "method": method,
             "cex": cex,
@@ -122,9 +131,7 @@ class position_beeswarm(position):
         return groupby_apply(data, "group", _swarm_group)
 
 
-def _dodge_groups(
-    data: "pd.DataFrame", dodge_width: float
-) -> "pd.DataFrame":
+def _dodge_groups(data: "pd.DataFrame", dodge_width: float) -> "pd.DataFrame":
     """
     Spread aesthetic groups horizontally so they do not overlap.
     """
@@ -134,9 +141,13 @@ def _dodge_groups(
     if n_groups <= 1:
         return data
 
-    offsets = np.linspace(
-        -dodge_width / 2, dodge_width / 2, n_groups
-    )
+    offsets = np.linspace(-dodge_width / 2, dodge_width / 2, n_groups)
     group_map = dict(zip(sorted(groups), offsets))
     data["x"] = data["x"] + data["group"].map(group_map)
     return data
+
+
+def _validate_choice(name: str, value, valid: set) -> None:
+    if value not in valid:
+        msg = f"{name} must be one of {sorted(valid)}, got {value!r}"
+        raise ValueError(msg)

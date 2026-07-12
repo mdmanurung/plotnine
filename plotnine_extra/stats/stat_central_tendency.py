@@ -51,8 +51,7 @@ class stat_central_tendency(stat):
             center = _get_mode(x)
         else:
             raise ValueError(
-                f"type must be 'mean', 'median', or 'mode', "
-                f"got '{ct_type}'"
+                f"type must be 'mean', 'median', or 'mode', got '{ct_type}'"
             )
 
         return pd.DataFrame(

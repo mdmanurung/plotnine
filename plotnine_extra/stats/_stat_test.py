@@ -81,9 +81,7 @@ def run_stat_test(
     elif method == "welch.anova":
         return _run_welch_anova(groups)
     elif method in ("pearson", "spearman", "kendall"):
-        return _run_correlation(
-            groups, method, alternative
-        )
+        return _run_correlation(groups, method, alternative)
     else:
         raise ValueError(f"Unknown test method: {method}")
 
@@ -119,9 +117,7 @@ def _run_ttest(
         v2 = np.var(groups[1], ddof=1)
         se1 = v1 / n1
         se2 = v2 / n2
-        df = (se1 + se2) ** 2 / (
-            (se1**2 / (n1 - 1)) + (se2**2 / (n2 - 1))
-        )
+        df = (se1 + se2) ** 2 / ((se1**2 / (n1 - 1)) + (se2**2 / (n2 - 1)))
 
     return StatTestResult(
         statistic=result.statistic,
@@ -139,9 +135,7 @@ def _run_wilcox(
 ) -> StatTestResult:
     """Run Wilcoxon / Mann-Whitney U test."""
     if len(groups) != 2:
-        raise ValueError(
-            "Wilcoxon test requires exactly 2 groups"
-        )
+        raise ValueError("Wilcoxon test requires exactly 2 groups")
 
     if paired:
         result = sp_stats.wilcoxon(
@@ -211,24 +205,18 @@ def _run_welch_anova(
     k = len(groups)
     ns = np.array([len(g) for g in groups])
     means = np.array([np.mean(g) for g in groups])
-    variances = np.array(
-        [np.var(g, ddof=1) for g in groups]
-    )
+    variances = np.array([np.var(g, ddof=1) for g in groups])
     weights = ns / variances
 
     # Weighted grand mean
     grand_mean = np.sum(weights * means) / np.sum(weights)
 
     # Welch's F statistic
-    numerator = np.sum(weights * (means - grand_mean) ** 2) / (
-        k - 1
-    )
+    numerator = np.sum(weights * (means - grand_mean) ** 2) / (k - 1)
 
     # Lambda values for denominator correction
     lambdas = (1 - weights / np.sum(weights)) ** 2 / (ns - 1)
-    denominator = 1 + 2 * (k - 2) / (k**2 - 1) * np.sum(
-        lambdas
-    )
+    denominator = 1 + 2 * (k - 2) / (k**2 - 1) * np.sum(lambdas)
 
     f_stat = numerator / denominator
     df1 = k - 1
@@ -251,9 +239,7 @@ def _run_correlation(
 ) -> StatTestResult:
     """Run a correlation test (Pearson, Spearman, or Kendall)."""
     if len(groups) != 2:
-        raise ValueError(
-            "Correlation tests require exactly 2 arrays"
-        )
+        raise ValueError("Correlation tests require exactly 2 arrays")
 
     x, y = groups[0], groups[1]
 

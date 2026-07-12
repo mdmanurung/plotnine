@@ -34,7 +34,11 @@ from plotnine.mapping.evaluation import after_stat
 from plotnine.stats.stat import stat
 from scipy import stats as _sps
 
-from ._common import preserve_panel_columns
+from ._common import (
+    is_horizontal_orientation,
+    preserve_panel_columns,
+    require_vertical_orientation,
+)
 from .stat_pwc import _adjust_pvalues
 
 if TYPE_CHECKING:
@@ -195,14 +199,7 @@ class stat_compare(stat):
         # equivalent, so we detect the mismatch (continuous x +
         # discrete-looking y) and refuse rather than silently
         # producing wrong brackets.
-        if _is_horizontal(data):
-            raise NotImplementedError(
-                "stat_compare does not yet support horizontal "
-                "orientation (continuous x with discrete y). "
-                "Build the plot with the discrete variable on "
-                "the x-axis and add coord_flip() if you need a "
-                "horizontal layout."
-            )
+        require_vertical_orientation(data, "stat_compare")
 
         # Add a synthetic group column if missing
         if "group" not in data.columns:
@@ -578,25 +575,7 @@ def _is_horizontal(data: pd.DataFrame) -> bool:
     We flag the horizontal case when ``y`` looks discrete
     (few unique values, all integers) but ``x`` does not.
     """
-    if "x" not in data.columns or "y" not in data.columns:
-        return False
-    x_vals = pd.to_numeric(data["x"], errors="coerce").dropna()
-    y_vals = pd.to_numeric(data["y"], errors="coerce").dropna()
-    if x_vals.empty or y_vals.empty:
-        return False
-
-    def _looks_discrete(s: pd.Series) -> bool:
-        # Must be all (approximately) integer and have a small
-        # number of unique levels — matches how plotnine 0.15
-        # encodes a discrete scale position.
-        arr = s.to_numpy(dtype=float)
-        if not np.allclose(arr, np.round(arr)):
-            return False
-        return s.nunique() <= 50
-
-    x_discrete = _looks_discrete(x_vals)
-    y_discrete = _looks_discrete(y_vals)
-    return (not x_discrete) and y_discrete
+    return is_horizontal_orientation(data)
 
 
 # ------------------------------------------------------------

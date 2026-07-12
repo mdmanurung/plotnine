@@ -63,5 +63,7 @@ class strip_tag(Strip):
 
     def draw(self, label_info: Any) -> Any:
         """Draw tag text within the panel area."""
-        # TODO: Render tag text at the specified position
-        # inside each panel.
+        raise NotImplementedError(
+            "strip_tag requires panel-aware strip drawing hooks that are not "
+            "available in plotnine 0.15/0.16"
+        )

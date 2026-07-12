@@ -7,8 +7,7 @@ and facet implementations.
 import numpy as np
 import pandas as pd
 import pytest
-
-from plotnine import aes, geom_point, ggplot, lims
+from plotnine import aes, geom_point, ggplot
 
 from plotnine_extra import (
     geom_half_boxplot,
@@ -23,14 +22,12 @@ from plotnine_extra import (
 )
 from plotnine_extra.facets import (
     facet_grid2,
-    facet_manual,
     facet_wrap2,
 )
 from plotnine_extra.facets.facetted_pos_scales import (
     FacettedPosScales,
     facetted_pos_scales,
 )
-
 
 # ── Test data ──────────────────────────────────────────
 
@@ -89,14 +86,13 @@ class TestGeomTextRepel:
 
     def test_custom_params(self, scatter_data):
         """geom_text_repel accepts custom parameters."""
-        p = (
-            ggplot(scatter_data, aes("x", "y", label="label"))
-            + geom_text_repel(
-                force=2.0,
-                max_iter=100,
-                seed=123,
-                direction="x",
-            )
+        p = ggplot(
+            scatter_data, aes("x", "y", label="label")
+        ) + geom_text_repel(
+            force=2.0,
+            max_iter=100,
+            seed=123,
+            direction="x",
         )
         p.draw_test()
 
@@ -127,25 +123,18 @@ class TestGeomLabelRepel:
 class TestGeomHalfViolin:
     def test_can_create(self, box_data):
         """geom_half_violin can be instantiated."""
-        p = (
-            ggplot(box_data, aes("group", "value"))
-            + geom_half_violin()
-        )
+        p = ggplot(box_data, aes("group", "value")) + geom_half_violin()
         assert p is not None
 
     def test_draws_without_error(self, box_data):
         """geom_half_violin draws without error."""
-        p = (
-            ggplot(box_data, aes("group", "value"))
-            + geom_half_violin()
-        )
+        p = ggplot(box_data, aes("group", "value")) + geom_half_violin()
         p.draw_test()
 
     def test_side_param(self, box_data):
         """geom_half_violin accepts side parameter."""
-        p = (
-            ggplot(box_data, aes("group", "value"))
-            + geom_half_violin(side="l")
+        p = ggplot(box_data, aes("group", "value")) + geom_half_violin(
+            side="l"
         )
         p.draw_test()
 
@@ -153,25 +142,18 @@ class TestGeomHalfViolin:
 class TestGeomHalfBoxplot:
     def test_can_create(self, box_data):
         """geom_half_boxplot can be instantiated."""
-        p = (
-            ggplot(box_data, aes("group", "value"))
-            + geom_half_boxplot()
-        )
+        p = ggplot(box_data, aes("group", "value")) + geom_half_boxplot()
         assert p is not None
 
     def test_draws_without_error(self, box_data):
         """geom_half_boxplot draws without error."""
-        p = (
-            ggplot(box_data, aes("group", "value"))
-            + geom_half_boxplot()
-        )
+        p = ggplot(box_data, aes("group", "value")) + geom_half_boxplot()
         p.draw_test()
 
     def test_side_param(self, box_data):
         """geom_half_boxplot accepts side parameter."""
-        p = (
-            ggplot(box_data, aes("group", "value"))
-            + geom_half_boxplot(side="l")
+        p = ggplot(box_data, aes("group", "value")) + geom_half_boxplot(
+            side="l"
         )
         p.draw_test()
 
@@ -182,20 +164,12 @@ class TestGeomHalfBoxplot:
 class TestThemes:
     def test_theme_pubr(self, scatter_data):
         """theme_pubr can be applied."""
-        p = (
-            ggplot(scatter_data, aes("x", "y"))
-            + geom_point()
-            + theme_pubr()
-        )
+        p = ggplot(scatter_data, aes("x", "y")) + geom_point() + theme_pubr()
         p.draw_test()
 
     def test_theme_clean(self, scatter_data):
         """theme_clean can be applied."""
-        p = (
-            ggplot(scatter_data, aes("x", "y"))
-            + geom_point()
-            + theme_clean()
-        )
+        p = ggplot(scatter_data, aes("x", "y")) + geom_point() + theme_clean()
         p.draw_test()
 
     def test_theme_scientific(self, scatter_data):
@@ -209,20 +183,12 @@ class TestThemes:
 
     def test_theme_nature(self, scatter_data):
         """theme_nature can be applied."""
-        p = (
-            ggplot(scatter_data, aes("x", "y"))
-            + geom_point()
-            + theme_nature()
-        )
+        p = ggplot(scatter_data, aes("x", "y")) + geom_point() + theme_nature()
         p.draw_test()
 
     def test_theme_poster(self, scatter_data):
         """theme_poster can be applied."""
-        p = (
-            ggplot(scatter_data, aes("x", "y"))
-            + geom_point()
-            + theme_poster()
-        )
+        p = ggplot(scatter_data, aes("x", "y")) + geom_point() + theme_poster()
         p.draw_test()
 
     def test_theme_pubr_custom_size(self, scatter_data):
@@ -281,33 +247,21 @@ class TestFacetGrid2:
         """facet_grid2 can be instantiated."""
         data = pd.DataFrame(
             {
-                "x": np.random.default_rng(0).normal(
-                    size=40
-                ),
-                "y": np.random.default_rng(0).normal(
-                    size=40
-                ),
+                "x": np.random.default_rng(0).normal(size=40),
+                "y": np.random.default_rng(0).normal(size=40),
                 "a": np.repeat(["X", "Y"], 20),
                 "b": np.tile(["P", "Q"], 20),
             }
         )
-        p = (
-            ggplot(data, aes("x", "y"))
-            + geom_point()
-            + facet_grid2("a", "b")
-        )
+        p = ggplot(data, aes("x", "y")) + geom_point() + facet_grid2("a", "b")
         p.draw_test()
 
     def test_independent_x(self):
         """facet_grid2 with independent='x' draws."""
         data = pd.DataFrame(
             {
-                "x": np.random.default_rng(0).normal(
-                    size=40
-                ),
-                "y": np.random.default_rng(0).normal(
-                    size=40
-                ),
+                "x": np.random.default_rng(0).normal(size=40),
+                "y": np.random.default_rng(0).normal(size=40),
                 "a": np.repeat(["X", "Y"], 20),
                 "b": np.tile(["P", "Q"], 20),
             }
@@ -315,9 +269,7 @@ class TestFacetGrid2:
         p = (
             ggplot(data, aes("x", "y"))
             + geom_point()
-            + facet_grid2(
-                "a", "b", independent="x", scales="free_x"
-            )
+            + facet_grid2("a", "b", independent="x", scales="free_x")
         )
         p.draw_test()
 

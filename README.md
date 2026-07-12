@@ -35,6 +35,32 @@ from plotnine_extra import geom_pointdensity, annotation_stripes
 
 - **`stat_pointdensity`** — Compute density estimation for each point
 
+### Facets, Guides, and Strips
+
+```python
+from plotnine import ggplot, aes, geom_point, scale_x_continuous
+from plotnine_extra import facet_wrap2, guide_axis_manual
+
+(
+    ggplot(df, aes("x", "y"))
+    + geom_point()
+    + facet_wrap2("group", scales="free_x", axes="all")
+    + scale_x_continuous(
+        guide=guide_axis_manual(
+            breaks=[0, 5, 10],
+            labels=["low", "mid", "high"],
+            label_colour=["#1b9e77", "#7570b3", "#d95f02"],
+        )
+    )
+)
+```
+
+- **`facet_grid2`**, **`facet_wrap2`**, **`facet_manual`** — Extended facet layouts with inner-axis and per-panel-scale support
+- **`scale_x_facet`**, **`scale_y_facet`** — Selector-based per-panel position scales
+- **`guide_axis_manual`**, **`guide_axis_colour`**, **`guide_axis_minor`**, **`guide_axis_logticks`**, **`guide_axis_truncated`**, **`guide_axis_scalebar`**, **`guide_axis_nested`**, **`guide_dendro`** — Matplotlib-backed axis guides for the extended facets
+- **`guide_stringlegend`** — Text-only color/fill legend
+- **`strip_nested`**, **`strip_themed`**, **`strip_split`**, **`strip_tag`** — Constructor-compatible strip descriptors; direct strip drawing is partial where plotnine does not expose the required strip-side hooks
+
 ### Plot Composition
 
 Compose multiple plots using operators:
@@ -128,7 +154,7 @@ This project uses [trusted publishing](https://docs.pypi.org/trusted-publishers/
 ### How to publish
 
 - **To TestPyPI:** Go to Actions → "Publish to PyPI / TestPyPI" → Run workflow → select `testpypi`
-- **To PyPI:** Create a GitHub Release (tag it as `v0.1.0`, etc.) — publishing happens automatically
+- **To PyPI:** Create a GitHub Release tagged exactly as `vX.Y.Z` for the version in `pyproject.toml` (for this release candidate, `v0.3.1`) — publishing happens automatically after artifact validation
 
 ### Version bumping
 

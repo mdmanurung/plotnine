@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 # Van der Corput sequence (used by quasirandom)
 # -------------------------------------------------------------------
 
+
 def van_der_corput(n: int, base: int = 2) -> NDArray[np.float64]:
     """
     Generate the first *n* elements of the van der Corput
@@ -43,6 +44,7 @@ def van_der_corput(n: int, base: int = 2) -> NDArray[np.float64]:
 # -------------------------------------------------------------------
 # Quasirandom offset (density-aware jitter)
 # -------------------------------------------------------------------
+
 
 def _kde_density(
     values: NDArray[np.float64],
@@ -146,6 +148,7 @@ def offset_quasirandom(
 # Beeswarm offset (avoid-overlap placement)
 # -------------------------------------------------------------------
 
+
 def offset_beeswarm(
     values: NDArray[np.float64],
     *,
@@ -191,10 +194,7 @@ def offset_beeswarm(
     # Estimate point size in data-axis units
     if point_size is None:
         val_range = values.max() - values.min()
-        point_size = (
-            1.0 if val_range == 0
-            else val_range / max(n, 10)
-        )
+        point_size = 1.0 if val_range == 0 else val_range / max(n, 10)
     point_size *= cex
 
     if method in ("swarm", "compactswarm"):
@@ -274,9 +274,7 @@ def _swarm(
 
             # From the overlap circle: dx² + dy² >= d²
             # => dx >= sqrt(d² - dy²)
-            min_dx = np.sqrt(
-                np.maximum(point_size**2 - neighbour_dy**2, 0)
-            )
+            min_dx = np.sqrt(np.maximum(point_size**2 - neighbour_dy**2, 0))
 
             if method == "compactswarm":
                 x_i = _compact_place(neighbour_x, min_dx, side)
@@ -437,6 +435,7 @@ def _apply_side(
 # -------------------------------------------------------------------
 # Corral helpers
 # -------------------------------------------------------------------
+
 
 def corral_points(
     offsets: NDArray[np.float64],

@@ -94,9 +94,7 @@ class stat_cor(stat):
         if len(x) < 3:
             return pd.DataFrame()
 
-        result = run_stat_test(
-            [x, y], method=method, alternative=alternative
-        )
+        result = run_stat_test([x, y], method=method, alternative=alternative)
 
         coef_name = _COEF_NAMES.get(method, "R")
         r = result.statistic
@@ -115,11 +113,13 @@ class stat_cor(stat):
 
         # Position the label
         x_pos = compute_label_position(
-            x.min(), x.max(),
+            x.min(),
+            x.max(),
             self.params["label_x_npc"],
         )
         y_pos = compute_label_position(
-            y.min(), y.max(),
+            y.min(),
+            y.max(),
             self.params["label_y_npc"],
         )
 
@@ -149,4 +149,3 @@ def _format_p(p: float, accuracy: float) -> str:
         return f"p < {accuracy:.{digits}f}"
     digits = _accuracy_to_digits(accuracy)
     return f"p = {p:.{digits}f}"
-

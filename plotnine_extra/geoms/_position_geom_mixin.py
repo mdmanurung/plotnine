@@ -38,9 +38,5 @@ class _PositionGeomMixin:
         for key, default in self._position_params.items():
             pos_kwargs[key] = kwargs.pop(key, default)
 
-        kwargs["position"] = self._position_class(
-            **pos_kwargs
-        )
-        super().__init__(
-            mapping=mapping, data=data, **kwargs
-        )
+        kwargs["position"] = self._position_class(**pos_kwargs)
+        super().__init__(mapping=mapping, data=data, **kwargs)

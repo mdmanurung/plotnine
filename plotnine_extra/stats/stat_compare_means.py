@@ -4,7 +4,12 @@ import pandas as pd
 from plotnine.mapping.evaluation import after_stat
 from plotnine.stats.stat import stat
 
-from ._common import preserve_panel_columns
+from ._common import (
+    add_wid_mapping,
+    paired_values_by_wid,
+    preserve_panel_columns,
+    require_vertical_orientation,
+)
 from ._label_utils import compute_label_position
 from ._p_format import format_p_value, p_to_signif
 from ._stat_test import run_stat_test
@@ -69,7 +74,7 @@ class stat_compare_means(stat):
 
     """
     REQUIRED_AES = {"x", "y"}
-    DEFAULT_AES = {"label": after_stat("label")}
+    DEFAULT_AES = {"label": after_stat("label"), "wid": None}
     DEFAULT_PARAMS = {
         "geom": "text",
         "position": "identity",
@@ -84,11 +89,18 @@ class stat_compare_means(stat):
         "label_y_npc": "top",
         "p_digits": 3,
         "step_increase": 0.1,
+        "wid": None,
     }
     CREATES = {"label", "p", "p_signif", "method"}
 
     def __init__(self, mapping=None, data=None, **kwargs):
+        wid = kwargs.get("wid")
+        mapping = add_wid_mapping(mapping, kwargs)
+        if wid is not None:
+            kwargs = kwargs.copy()
+            kwargs.pop("wid", None)
         super().__init__(mapping, data, **kwargs)
+        self.params["wid"] = wid
         # Remove 'label' from _kwargs so it is not forwarded
         # to the geom as a static aesthetic value. The 'label'
         # kwarg is a stat parameter controlling format (e.g.
@@ -96,8 +108,10 @@ class stat_compare_means(stat):
         self._kwargs.pop("label", None)
 
     def compute_panel(self, data, scales) -> pd.DataFrame:
+        require_vertical_orientation(data, "stat_compare_means")
         method = self.params["method"]
         paired = self.params["paired"]
+        wid = self.params.get("wid")
         comparisons = self.params["comparisons"]
         ref_group = self.params["ref_group"]
         hide_ns = self.params["hide_ns"]
@@ -115,9 +129,7 @@ class stat_compare_means(stat):
         # Build mapping from original labels to numeric
         # x values if using a discrete scale
         label_to_num = {}
-        if hasattr(scales, "x") and hasattr(
-            scales.x, "range"
-        ):
+        if hasattr(scales, "x") and hasattr(scales.x, "range"):
             try:
                 limits = scales.x.limits
                 if limits and isinstance(limits[0], str):
@@ -144,19 +156,11 @@ class stat_compare_means(stat):
                 mapped_pairs.append((k1, k2))
             pairs = mapped_pairs
         elif ref_group is not None:
-            ref_key = label_to_num.get(
-                ref_group, ref_group
-            )
-            pairs = [
-                (ref_key, g)
-                for g in group_names
-                if g != ref_key
-            ]
+            ref_key = label_to_num.get(ref_group, ref_group)
+            pairs = [(ref_key, g) for g in group_names if g != ref_key]
         else:
             # Global test
-            return self._global_test(
-                data, grouped, group_names, method
-            )
+            return self._global_test(data, grouped, group_names, method)
 
         # Pairwise comparisons
         return self._pairwise_test(
@@ -169,25 +173,19 @@ class stat_compare_means(stat):
             label_type,
             p_digits,
             step_increase,
+            wid,
         )
 
-    def _global_test(
-        self, data, grouped, group_names, method
-    ):
+    def _global_test(self, data, grouped, group_names, method):
         """Run a global test across all groups."""
-        groups = [
-            grouped[g]["y"].to_numpy(dtype=float)
-            for g in group_names
-        ]
+        groups = [grouped[g]["y"].to_numpy(dtype=float) for g in group_names]
 
         # For 2 groups, use pairwise test method
         # For >2 groups, use ANOVA or Kruskal-Wallis
         if len(groups) > 2:
             if method in ("t.test", "wilcox.test"):
                 global_method = (
-                    "kruskal.test"
-                    if method == "wilcox.test"
-                    else "anova"
+                    "kruskal.test" if method == "wilcox.test" else "anova"
                 )
             else:
                 global_method = method
@@ -198,9 +196,7 @@ class stat_compare_means(stat):
         p_digits = self.params["p_digits"]
         p_signif = p_to_signif(result.p_value)
 
-        label = self._make_label(
-            result.p_value, p_signif, p_digits
-        )
+        label = self._make_label(result.p_value, p_signif, p_digits)
 
         x_pos = compute_label_position(
             data["x"].min(),
@@ -238,6 +234,7 @@ class stat_compare_means(stat):
         label_type,
         p_digits,
         step_increase,
+        wid,
     ):
         """Run pairwise tests between specified pairs."""
         results = []
@@ -248,8 +245,11 @@ class stat_compare_means(stat):
             if g1 not in grouped or g2 not in grouped:
                 continue
 
-            group1 = grouped[g1]["y"].to_numpy(dtype=float)
-            group2 = grouped[g2]["y"].to_numpy(dtype=float)
+            if paired:
+                group1, group2 = paired_values_by_wid(data, g1, g2, wid)
+            else:
+                group1 = grouped[g1]["y"].to_numpy(dtype=float)
+                group2 = grouped[g2]["y"].to_numpy(dtype=float)
 
             result = run_stat_test(
                 [group1, group2],
@@ -262,20 +262,14 @@ class stat_compare_means(stat):
             if hide_ns and p_signif == "ns":
                 continue
 
-            label = self._make_label(
-                result.p_value, p_signif, p_digits
-            )
+            label = self._make_label(result.p_value, p_signif, p_digits)
 
             # Position: midpoint between groups
             # Get x positions of groups
             x1 = grouped[g1]["x"].iloc[0]
             x2 = grouped[g2]["x"].iloc[0]
             x_mid = (x1 + x2) / 2
-            y_pos = (
-                y_max
-                + y_range * 0.05
-                + y_range * step_increase * i
-            )
+            y_pos = y_max + y_range * 0.05 + y_range * step_increase * i
 
             results.append(
                 {
@@ -291,9 +285,7 @@ class stat_compare_means(stat):
         if not results:
             return pd.DataFrame()
 
-        return preserve_panel_columns(
-            pd.DataFrame(results), data
-        )
+        return preserve_panel_columns(pd.DataFrame(results), data)
 
     def _make_label(self, p_value, p_signif, p_digits):
         """Create label based on label type."""
@@ -301,11 +293,7 @@ class stat_compare_means(stat):
         if label_type == "p.signif":
             return p_signif
         elif label_type == "p.format.signif":
-            p_str = format_p_value(
-                p_value, digits=p_digits
-            )
+            p_str = format_p_value(p_value, digits=p_digits)
             return f"{p_str} ({p_signif})"
         else:  # p.format
-            return format_p_value(
-                p_value, digits=p_digits
-            )
+            return format_p_value(p_value, digits=p_digits)

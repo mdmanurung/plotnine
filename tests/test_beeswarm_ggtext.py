@@ -44,9 +44,7 @@ class TestVanDerCorput:
 
     def test_first_values_base2(self):
         seq = van_der_corput(4, base=2)
-        np.testing.assert_allclose(
-            seq, [0.5, 0.25, 0.75, 0.125]
-        )
+        np.testing.assert_allclose(seq, [0.5, 0.25, 0.75, 0.125])
 
     def test_uniqueness(self):
         seq = van_der_corput(100)
@@ -90,8 +88,11 @@ class TestOffsetQuasirandom:
     def test_varwidth(self):
         y = np.random.default_rng(42).normal(size=50)
         result = offset_quasirandom(
-            y, width=0.4, varwidth=True,
-            group_count=10, total_count=100,
+            y,
+            width=0.4,
+            varwidth=True,
+            group_count=10,
+            total_count=100,
         )
         assert len(result) == 50
 
@@ -121,8 +122,7 @@ class TestOffsetBeeswarm:
 
     def test_methods(self):
         y = np.sort(np.random.default_rng(42).normal(size=20))
-        for method in ("swarm", "compactswarm", "center",
-                        "hex", "square"):
+        for method in ("swarm", "compactswarm", "center", "hex", "square"):
             result = offset_beeswarm(y, method=method)
             assert len(result) == len(y), f"Failed for {method}"
 
@@ -138,8 +138,7 @@ class TestOffsetBeeswarm:
 
     def test_priorities(self):
         y = np.random.default_rng(42).normal(size=20)
-        for p in ("ascending", "descending", "density",
-                   "random", "none"):
+        for p in ("ascending", "descending", "density", "random", "none"):
             result = offset_beeswarm(y, priority=p)
             assert len(result) == len(y), f"Failed for {p}"
 
@@ -223,9 +222,7 @@ class TestPositionBeeswarm:
         assert pos.params["corral"] == "none"
 
     def test_custom_params(self):
-        pos = position_beeswarm(
-            method="hex", cex=2.0, side=1
-        )
+        pos = position_beeswarm(method="hex", cex=2.0, side=1)
         assert pos.params["method"] == "hex"
         assert pos.params["cex"] == 2.0
         assert pos.params["side"] == 1
@@ -238,22 +235,28 @@ class TestPositionBeeswarm:
 
 def _make_categorical_data(seed=42):
     rng = np.random.default_rng(seed)
-    return pd.DataFrame({
-        "group": np.repeat(["A", "B", "C"], 20),
-        "value": np.concatenate([
-            rng.normal(0, 1, 20),
-            rng.normal(1, 1.5, 20),
-            rng.normal(2, 0.5, 20),
-        ]),
-    })
+    return pd.DataFrame(
+        {
+            "group": np.repeat(["A", "B", "C"], 20),
+            "value": np.concatenate(
+                [
+                    rng.normal(0, 1, 20),
+                    rng.normal(1, 1.5, 20),
+                    rng.normal(2, 0.5, 20),
+                ]
+            ),
+        }
+    )
 
 
 def _make_label_data():
-    return pd.DataFrame({
-        "x": [1, 2, 3],
-        "y": [1, 2, 3],
-        "label": ["Hello", "World", "Test"],
-    })
+    return pd.DataFrame(
+        {
+            "x": [1, 2, 3],
+            "y": [1, 2, 3],
+            "label": ["Hello", "World", "Test"],
+        }
+    )
 
 
 class TestGeomBeeswarm:
@@ -271,9 +274,8 @@ class TestGeomBeeswarm:
 
         df = _make_categorical_data()
         for method in ("swarm", "center", "hex", "square"):
-            p = (
-                ggplot(df, aes("group", "value"))
-                + geom_beeswarm(method=method)
+            p = ggplot(df, aes("group", "value")) + geom_beeswarm(
+                method=method
             )
             p.draw(show=False)
 
@@ -281,19 +283,15 @@ class TestGeomBeeswarm:
         from plotnine_extra import aes, geom_beeswarm, ggplot
 
         df = _make_categorical_data()
-        p = (
-            ggplot(df, aes("group", "value"))
-            + geom_beeswarm(side=1)
-        )
+        p = ggplot(df, aes("group", "value")) + geom_beeswarm(side=1)
         p.draw(show=False)
 
     def test_corral_parameter(self):
         from plotnine_extra import aes, geom_beeswarm, ggplot
 
         df = _make_categorical_data()
-        p = (
-            ggplot(df, aes("group", "value"))
-            + geom_beeswarm(corral="gutter", corral_width=0.5)
+        p = ggplot(df, aes("group", "value")) + geom_beeswarm(
+            corral="gutter", corral_width=0.5
         )
         p.draw(show=False)
 
@@ -305,19 +303,15 @@ class TestGeomQuasirandom:
         from plotnine_extra import aes, geom_quasirandom, ggplot
 
         df = _make_categorical_data()
-        p = (
-            ggplot(df, aes("group", "value"))
-            + geom_quasirandom()
-        )
+        p = ggplot(df, aes("group", "value")) + geom_quasirandom()
         p.draw(show=False)
 
     def test_pseudorandom(self):
         from plotnine_extra import aes, geom_quasirandom, ggplot
 
         df = _make_categorical_data()
-        p = (
-            ggplot(df, aes("group", "value"))
-            + geom_quasirandom(method="pseudorandom")
+        p = ggplot(df, aes("group", "value")) + geom_quasirandom(
+            method="pseudorandom"
         )
         p.draw(show=False)
 
@@ -325,10 +319,7 @@ class TestGeomQuasirandom:
         from plotnine_extra import aes, geom_quasirandom, ggplot
 
         df = _make_categorical_data()
-        p = (
-            ggplot(df, aes("group", "value"))
-            + geom_quasirandom(width=0.2)
-        )
+        p = ggplot(df, aes("group", "value")) + geom_quasirandom(width=0.2)
         p.draw(show=False)
 
 
@@ -339,58 +330,54 @@ class TestGeomRichtext:
         from plotnine_extra import aes, geom_richtext, ggplot
 
         df = _make_label_data()
-        p = (
-            ggplot(df, aes("x", "y", label="label"))
-            + geom_richtext()
-        )
+        p = ggplot(df, aes("x", "y", label="label")) + geom_richtext()
         p.draw(show=False)
 
     def test_markdown_bold(self):
         from plotnine_extra import aes, geom_richtext, ggplot
 
-        df = pd.DataFrame({
-            "x": [1], "y": [1],
-            "label": ["**Bold text**"],
-        })
-        p = (
-            ggplot(df, aes("x", "y", label="label"))
-            + geom_richtext()
+        df = pd.DataFrame(
+            {
+                "x": [1],
+                "y": [1],
+                "label": ["**Bold text**"],
+            }
         )
+        p = ggplot(df, aes("x", "y", label="label")) + geom_richtext()
         p.draw(show=False)
 
     def test_markdown_italic(self):
         from plotnine_extra import aes, geom_richtext, ggplot
 
-        df = pd.DataFrame({
-            "x": [1], "y": [1],
-            "label": ["*Italic text*"],
-        })
-        p = (
-            ggplot(df, aes("x", "y", label="label"))
-            + geom_richtext()
+        df = pd.DataFrame(
+            {
+                "x": [1],
+                "y": [1],
+                "label": ["*Italic text*"],
+            }
         )
+        p = ggplot(df, aes("x", "y", label="label")) + geom_richtext()
         p.draw(show=False)
 
     def test_line_break(self):
         from plotnine_extra import aes, geom_richtext, ggplot
 
-        df = pd.DataFrame({
-            "x": [1], "y": [1],
-            "label": ["Line 1<br>Line 2"],
-        })
-        p = (
-            ggplot(df, aes("x", "y", label="label"))
-            + geom_richtext()
+        df = pd.DataFrame(
+            {
+                "x": [1],
+                "y": [1],
+                "label": ["Line 1<br>Line 2"],
+            }
         )
+        p = ggplot(df, aes("x", "y", label="label")) + geom_richtext()
         p.draw(show=False)
 
     def test_fill_alpha(self):
         from plotnine_extra import aes, geom_richtext, ggplot
 
         df = _make_label_data()
-        p = (
-            ggplot(df, aes("x", "y", label="label"))
-            + geom_richtext(fill_alpha=0.5)
+        p = ggplot(df, aes("x", "y", label="label")) + geom_richtext(
+            fill_alpha=0.5
         )
         p.draw(show=False)
 
@@ -401,29 +388,31 @@ class TestGeomTextbox:
     def test_basic(self):
         from plotnine_extra import aes, geom_textbox, ggplot
 
-        df = pd.DataFrame({
-            "x": [1], "y": [1],
-            "label": [
-                "This is a long text that should be "
-                "wrapped into multiple lines for display"
-            ],
-        })
-        p = (
-            ggplot(df, aes("x", "y", label="label"))
-            + geom_textbox()
+        df = pd.DataFrame(
+            {
+                "x": [1],
+                "y": [1],
+                "label": [
+                    "This is a long text that should be "
+                    "wrapped into multiple lines for display"
+                ],
+            }
         )
+        p = ggplot(df, aes("x", "y", label="label")) + geom_textbox()
         p.draw(show=False)
 
     def test_custom_width(self):
         from plotnine_extra import aes, geom_textbox, ggplot
 
-        df = pd.DataFrame({
-            "x": [1], "y": [1],
-            "label": ["Short text that wraps at 15 chars"],
-        })
-        p = (
-            ggplot(df, aes("x", "y", label="label"))
-            + geom_textbox(text_width=15)
+        df = pd.DataFrame(
+            {
+                "x": [1],
+                "y": [1],
+                "label": ["Short text that wraps at 15 chars"],
+            }
+        )
+        p = ggplot(df, aes("x", "y", label="label")) + geom_textbox(
+            text_width=15
         )
         p.draw(show=False)
 
@@ -477,9 +466,7 @@ class TestElementMarkdown:
             + geom_point()
             + labs(title="Title")
             + theme(
-                plot_title=element_markdown(
-                    face="bold", color="blue", size=14
-                )
+                plot_title=element_markdown(face="bold", color="blue", size=14)
             )
         )
         p.draw(show=False)
@@ -495,9 +482,7 @@ class TestElementTextboxSimple:
         assert et.properties["linespacing"] == 1.2
 
     def test_custom_params(self):
-        et = element_textbox_simple(
-            size=14, color="darkblue", face="bold"
-        )
+        et = element_textbox_simple(size=14, color="darkblue", face="bold")
         assert et.properties["size"] == 14
         assert et.properties["color"] == "darkblue"
         assert et.properties["weight"] == "bold"

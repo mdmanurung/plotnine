@@ -143,20 +143,14 @@ class geom_textbox(geom_text):
                 "x": row["x"],
                 "y": row["y"],
                 "s": label,
-                "color": (
-                    color if isinstance(color, tuple) else color[i]
-                ),
+                "color": (color if isinstance(color, tuple) else color[i]),
                 "size": row["size"],
                 "rotation": row["angle"],
                 "linespacing": row["lineheight"],
                 "ha": halign,
                 "va": va,
-                "fontweight": md_props.get(
-                    "fontweight", row["fontweight"]
-                ),
-                "fontstyle": md_props.get(
-                    "fontstyle", row["fontstyle"]
-                ),
+                "fontweight": md_props.get("fontweight", row["fontweight"]),
+                "fontstyle": md_props.get("fontstyle", row["fontstyle"]),
                 "zorder": zorder,
                 "clip_on": True,
                 "rasterized": params.get("raster", False),
@@ -171,9 +165,7 @@ class geom_textbox(geom_text):
                 if params["boxcolor"] is not None
                 else kw["color"]
             )
-            bbox["facecolor"] = (
-                fill if isinstance(fill, tuple) else fill[i]
-            )
+            bbox["facecolor"] = fill if isinstance(fill, tuple) else fill[i]
             kw["bbox"] = bbox
 
             txt = ax.text(**kw)

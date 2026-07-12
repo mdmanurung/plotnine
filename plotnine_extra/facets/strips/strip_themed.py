@@ -47,5 +47,7 @@ class strip_themed(Strip):
 
     def draw(self, label_info: Any) -> Any:
         """Draw strips with individual theme overrides."""
-        # TODO: Apply per-strip theme elements during
-        # rendering.
+        raise NotImplementedError(
+            "strip_themed requires per-strip theme hooks that are not "
+            "available in plotnine 0.15/0.16"
+        )

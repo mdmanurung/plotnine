@@ -101,9 +101,7 @@ def _parse_markdown(text: str) -> tuple[str, dict[str, Any]]:
             text = m.group(1)
             props["fontstyle"] = "italic"
         else:
-            text = re.sub(
-                r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"\1", text
-            )
+            text = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"\1", text)
 
     return text, props
 
@@ -220,12 +218,8 @@ class geom_richtext(geom_text):
                 "linespacing": row["lineheight"],
                 "ha": row["ha"],
                 "va": row["va"],
-                "fontweight": md_props.get(
-                    "fontweight", row["fontweight"]
-                ),
-                "fontstyle": md_props.get(
-                    "fontstyle", row["fontstyle"]
-                ),
+                "fontweight": md_props.get("fontweight", row["fontweight"]),
+                "fontstyle": md_props.get("fontstyle", row["fontstyle"]),
                 "zorder": zorder,
                 "clip_on": True,
                 "rasterized": params.get("raster", False),
@@ -240,9 +234,7 @@ class geom_richtext(geom_text):
                 if params["boxcolor"] is not None
                 else kw["color"]
             )
-            bbox["facecolor"] = (
-                fill if isinstance(fill, tuple) else fill[i]
-            )
+            bbox["facecolor"] = fill if isinstance(fill, tuple) else fill[i]
             kw["bbox"] = bbox
 
             txt = ax.text(**kw)

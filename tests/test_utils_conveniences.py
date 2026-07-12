@@ -20,7 +20,6 @@ from plotnine_extra.utils.conveniences import (
     weave_factors,
 )
 
-
 # ---- _is_na helper ----
 
 
@@ -107,9 +106,7 @@ class TestDistributeArgs:
         def custom(x=0, y=0):
             return (x, y)
 
-        result = distribute_args(
-            fun=custom, x=[1, 2], y=[3, 4]
-        )
+        result = distribute_args(fun=custom, x=[1, 2], y=[3, 4])
         assert result == [(1, 3), (2, 4)]
 
     def test_cull_filters_invalid_params(self):
@@ -175,30 +172,22 @@ class TestWeaveFactors:
         assert len(result) == 3
 
     def test_two_factors(self):
-        result = weave_factors(
-            ["A", "A", "B"], ["X", "Y", "X"]
-        )
+        result = weave_factors(["A", "A", "B"], ["X", "Y", "X"])
         assert len(result) == 3
         expected = ["A.X", "A.Y", "B.X"]
         assert list(result) == expected
 
     def test_custom_separator(self):
-        result = weave_factors(
-            ["A", "B"], ["X", "Y"], sep="-"
-        )
+        result = weave_factors(["A", "B"], ["X", "Y"], sep="-")
         assert list(result) == ["A-X", "B-Y"]
 
     def test_drop_true(self):
-        result = weave_factors(
-            ["A", "A"], ["X", "X"], drop=True
-        )
+        result = weave_factors(["A", "A"], ["X", "X"], drop=True)
         # Only observed combo should be in categories
         assert list(result.categories) == ["A.X"]
 
     def test_drop_false(self):
-        result = weave_factors(
-            ["A", "A"], ["X", "X"], drop=False
-        )
+        result = weave_factors(["A", "A"], ["X", "X"], drop=False)
         # All combos should be in categories
         assert "A.X" in result.categories
 
@@ -211,15 +200,11 @@ class TestWeaveFactors:
         assert len(result) == 0
 
     def test_replace_na_true(self):
-        result = weave_factors(
-            ["A", None, "B"], replace_na=True
-        )
+        result = weave_factors(["A", None, "B"], replace_na=True)
         assert "NA" in list(result)
 
     def test_three_factors(self):
-        result = weave_factors(
-            ["A", "B"], ["X", "Y"], ["1", "2"]
-        )
+        result = weave_factors(["A", "B"], ["X", "Y"], ["1", "2"])
         assert list(result) == ["A.X.1", "B.Y.2"]
 
 

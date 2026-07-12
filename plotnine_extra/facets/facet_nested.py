@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, Literal
 from plotnine.facets.facet_grid import facet_grid
 from plotnine.facets.strips import Strips, strip
 
+from ..guides import apply_axis_guides
+
 if TYPE_CHECKING:
     from typing import Optional, Sequence
 
@@ -136,6 +138,10 @@ class facet_nested(facet_grid):
             lst.append(s)
 
         return Strips(lst)
+
+    def set_limits_breaks_and_labels(self, panel_params, ax):
+        super().set_limits_breaks_and_labels(panel_params, ax)
+        apply_axis_guides(self, panel_params, ax)
 
 
 class _nested_strip(strip):

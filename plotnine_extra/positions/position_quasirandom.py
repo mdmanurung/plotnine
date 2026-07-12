@@ -14,6 +14,8 @@ from plotnine.positions.position import position
 
 from ._beeswarm_algorithms import offset_quasirandom
 
+_VALID_METHODS = {"quasirandom", "pseudorandom"}
+
 if TYPE_CHECKING:
     from typing import Optional
 
@@ -63,6 +65,12 @@ class position_quasirandom(position):
         nbins: Optional[int] = None,
         dodge_width: Optional[float] = None,
     ):
+        if method not in _VALID_METHODS:
+            msg = (
+                f"method must be one of {sorted(_VALID_METHODS)}, "
+                f"got {method!r}"
+            )
+            raise ValueError(msg)
         self.params = {
             "method": method,
             "width": width,
@@ -110,9 +118,7 @@ class position_quasirandom(position):
         return groupby_apply(data, "group", _jitter_group)
 
 
-def _dodge_groups(
-    data: "pd.DataFrame", dodge_width: float
-) -> "pd.DataFrame":
+def _dodge_groups(data: "pd.DataFrame", dodge_width: float) -> "pd.DataFrame":
     """
     Spread aesthetic groups horizontally so they do not overlap.
     """
@@ -122,9 +128,7 @@ def _dodge_groups(
     if n_groups <= 1:
         return data
 
-    offsets = np.linspace(
-        -dodge_width / 2, dodge_width / 2, n_groups
-    )
+    offsets = np.linspace(-dodge_width / 2, dodge_width / 2, n_groups)
     group_map = dict(zip(sorted(groups), offsets))
     data["x"] = data["x"] + data["group"].map(group_map)
     return data

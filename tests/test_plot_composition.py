@@ -19,9 +19,7 @@ from plotnine_extra.composition import plot_annotation, plot_layout
 # properties on Compose).  Skip all tests when running against
 # an older plotnine.
 _has_compose_layout = hasattr(
-    __import__(
-        "plotnine.composition._compose", fromlist=["Compose"]
-    ).Compose,
+    __import__("plotnine.composition._compose", fromlist=["Compose"]).Compose,
     "layout",
 )
 pytestmark = pytest.mark.skipif(

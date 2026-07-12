@@ -9,6 +9,9 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 from plotnine.facets.facet_wrap import facet_wrap
 
+from ..guides import apply_axis_guides
+from .scale_facet import apply_scale_facets
+
 if TYPE_CHECKING:
     from typing import Optional, Sequence
 
@@ -164,5 +167,13 @@ class facet_wrap2(facet_wrap):
         fps = getattr(plot, "_facetted_pos_scales", None)
         if fps is not None:
             fps.apply(scales)
+        scale_facets = getattr(self, "_scale_facets", None)
+        if scale_facets is None:
+            scale_facets = getattr(plot, "_scale_facets", [])
+        apply_scale_facets(scales, layout, scale_facets)
 
         return scales
+
+    def set_limits_breaks_and_labels(self, panel_params, ax):
+        super().set_limits_breaks_and_labels(panel_params, ax)
+        apply_axis_guides(self, panel_params, ax)

@@ -87,17 +87,11 @@ class stat_regline_equation(stat):
         ss_tot = np.sum((y - np.mean(y)) ** 2)
 
         rr = 1 - ss_res / ss_tot if ss_tot != 0 else 0
-        adj_rr = (
-            1 - (1 - rr) * (n - 1) / (n - k)
-            if n > k
-            else rr
-        )
+        adj_rr = 1 - (1 - rr) * (n - 1) / (n - k) if n > k else rr
 
         # AIC and BIC (based on residual sum of squares)
         if n > 0 and ss_res > 0:
-            log_likelihood = (
-                -n / 2 * (np.log(2 * np.pi * ss_res / n) + 1)
-            )
+            log_likelihood = -n / 2 * (np.log(2 * np.pi * ss_res / n) + 1)
             aic = 2 * k - 2 * log_likelihood
             bic = k * np.log(n) - 2 * log_likelihood
         else:
@@ -110,11 +104,13 @@ class stat_regline_equation(stat):
 
         # Position the label
         x_pos = compute_label_position(
-            x.min(), x.max(),
+            x.min(),
+            x.max(),
             self.params["label_x_npc"],
         )
         y_pos = compute_label_position(
-            y.min(), y.max(),
+            y.min(),
+            y.max(),
             self.params["label_y_npc"],
         )
 
@@ -138,9 +134,7 @@ def _parse_formula_degree(formula):
 
     formula = formula.strip()
     # Match "y ~ poly(x, n)"
-    poly_match = re.match(
-        r"y\s*~\s*poly\s*\(\s*x\s*,\s*(\d+)\s*\)", formula
-    )
+    poly_match = re.match(r"y\s*~\s*poly\s*\(\s*x\s*,\s*(\d+)\s*\)", formula)
     if poly_match:
         return int(poly_match.group(1))
 
@@ -184,4 +178,3 @@ def _format_equation(coeffs, degree):
         else:
             eq += f" + {part}"
     return eq
-

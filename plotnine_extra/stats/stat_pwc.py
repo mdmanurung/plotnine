@@ -15,7 +15,12 @@ import pandas as pd
 from plotnine.mapping.evaluation import after_stat
 from plotnine.stats.stat import stat
 
-from ._common import preserve_panel_columns
+from ._common import (
+    add_wid_mapping,
+    paired_values_by_wid,
+    preserve_panel_columns,
+    require_vertical_orientation,
+)
 from ._p_format import format_p_value, p_to_signif
 from ._stat_test import run_stat_test
 
@@ -105,7 +110,7 @@ class stat_pwc(stat):
 
     """
     REQUIRED_AES = {"x", "y"}
-    DEFAULT_AES = {"label": after_stat("label")}
+    DEFAULT_AES = {"label": after_stat("label"), "wid": None}
     DEFAULT_PARAMS = {
         "geom": "bracket",
         "position": "identity",
@@ -123,6 +128,7 @@ class stat_pwc(stat):
         "tip_length": 0.03,
         "bracket_shorten": 0,
         "remove_bracket": False,
+        "wid": None,
     }
     CREATES = {
         "label",
@@ -139,7 +145,15 @@ class stat_pwc(stat):
     }
 
     def __init__(self, mapping=None, data=None, **kwargs):
+        if kwargs.get("remove_bracket") and "geom" not in kwargs:
+            kwargs["geom"] = "text"
+        wid = kwargs.get("wid")
+        mapping = add_wid_mapping(mapping, kwargs)
+        if wid is not None:
+            kwargs = kwargs.copy()
+            kwargs.pop("wid", None)
         super().__init__(mapping, data, **kwargs)
+        self.params["wid"] = wid
         # Remove 'label' from _kwargs so it is not forwarded
         # to the geom as a static aesthetic value. The 'label'
         # kwarg is a stat parameter controlling format (e.g.
@@ -147,8 +161,10 @@ class stat_pwc(stat):
         self._kwargs.pop("label", None)
 
     def compute_panel(self, data, scales):
+        require_vertical_orientation(data, "stat_pwc")
         method = self.params["method"]
         paired = self.params["paired"]
+        wid = self.params.get("wid")
         ref_group = self.params["ref_group"]
         comparisons_param = self.params["comparisons"]
         p_adjust_method = self.params["p_adjust_method"]
@@ -225,8 +241,16 @@ class stat_pwc(stat):
             if g1 not in grouped or g2 not in grouped:
                 continue
 
-            group1_vals = grouped[g1]["y"].to_numpy(dtype=float)
-            group2_vals = grouped[g2]["y"].to_numpy(dtype=float)
+            if paired:
+                group1_vals, group2_vals = paired_values_by_wid(
+                    data,
+                    g1,
+                    g2,
+                    wid,
+                )
+            else:
+                group1_vals = grouped[g1]["y"].to_numpy(dtype=float)
+                group2_vals = grouped[g2]["y"].to_numpy(dtype=float)
 
             result = run_stat_test(
                 [group1_vals, group2_vals],

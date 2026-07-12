@@ -125,8 +125,7 @@ class Compose:
         # prevent having a duplicate plot in the composition.
         # Using copies prevents this.
         self.items = [
-            op if isinstance(op, Compose) else deepcopy(op)
-            for op in items
+            op if isinstance(op, Compose) else deepcopy(op) for op in items
         ]
 
         self._layout = plot_layout()
@@ -249,10 +248,7 @@ class Compose:
 
         t1 = type(self).__name__
         t2 = type(rhs).__name__
-        msg = (
-            f"unsupported operand type(s) for +: "
-            f"'{t1}' and '{t2}'"
-        )
+        msg = f"unsupported operand type(s) for +: '{t1}' and '{t2}'"
         raise TypeError(msg)
 
     def __sub__(self, rhs: ggplot | Compose) -> Compose:
@@ -271,10 +267,7 @@ class Compose:
         if not isinstance(rhs, (ggplot, Compose)):
             t1 = type(self).__name__
             t2 = type(rhs).__name__
-            msg = (
-                f"unsupported operand type(s) for -: "
-                f"'{t1}' and '{t2}'"
-            )
+            msg = f"unsupported operand type(s) for -: '{t1}' and '{t2}'"
             raise TypeError(msg)
 
         return Beside([self, rhs])
@@ -293,9 +286,7 @@ class Compose:
         self = deepcopy(self)
 
         if isinstance(rhs, theme):
-            self.annotation.theme = (
-                self.annotation.theme + rhs
-            )
+            self.annotation.theme = self.annotation.theme + rhs
 
         for i, item in enumerate(self):
             if isinstance(item, Compose):
@@ -337,14 +328,10 @@ class Compose:
         return iter(self.items)
 
     @overload
-    def __getitem__(
-        self, index: int
-    ) -> ggplot | Compose: ...
+    def __getitem__(self, index: int) -> ggplot | Compose: ...
 
     @overload
-    def __getitem__(
-        self, index: slice
-    ) -> list[ggplot | Compose]: ...
+    def __getitem__(self, index: slice) -> list[ggplot | Compose]: ...
 
     def __getitem__(
         self,
@@ -355,19 +342,14 @@ class Compose:
     def __setitem__(self, key, value):
         self.items[key] = value
 
-    def _repr_mimebundle_(
-        self, include=None, exclude=None
-    ) -> MimeBundle:
+    def _repr_mimebundle_(self, include=None, exclude=None) -> MimeBundle:
         """
         Return dynamic MIME bundle for composition display
         """
         ip = get_ipython()
         format: FigureFormat = (
             get_option("figure_format")
-            or (
-                ip
-                and ip.config.InlineBackend.get("figure_format")
-            )
+            or (ip and ip.config.InlineBackend.get("figure_format"))
             or "retina"
         )
 
@@ -376,13 +358,9 @@ class Compose:
             self._to_retina()
 
         buf = BytesIO()
-        self.save(
-            buf, "png" if format == "retina" else format
-        )
+        self.save(buf, "png" if format == "retina" else format)
         figure_size_px = self.theme._figure_size_px
-        return get_mimebundle(
-            buf.getvalue(), format, figure_size_px
-        )
+        return get_mimebundle(buf.getvalue(), format, figure_size_px)
 
     def iter_sub_compositions(self):
         for item in self:
@@ -487,9 +465,7 @@ class Compose:
             figure, p9GridSpec(1, 1, figure, nest_into=None)
         )
 
-    def _generate_gridspecs(
-        self, figure: Figure, container_gs: p9GridSpec
-    ):
+    def _generate_gridspecs(self, figure: Figure, container_gs: p9GridSpec):
         from plotnine import ggplot
         from plotnine._mpl.gridspec import p9GridSpec
 
@@ -506,23 +482,17 @@ class Compose:
         # for each "subplot" in the grid. The SubplotSpec is
         # the handle for the area in the grid; it allows us to
         # put a plot or a nested composion in that area.
-        for item, subplot_spec in zip(
-            self, self._sub_gridspec
-        ):
+        for item, subplot_spec in zip(self, self._sub_gridspec):
             # This container gs will contain a plot or a
             # composition, i.e. it will be assigned to one of:
             #    1. ggplot._gridspec
             #    2. compose._gridspec
-            _container_gs = p9GridSpec(
-                1, 1, figure, nest_into=subplot_spec
-            )
+            _container_gs = p9GridSpec(1, 1, figure, nest_into=subplot_spec)
             if isinstance(item, ggplot):
                 item.figure = figure
                 item._gridspec = _container_gs
             else:
-                item._generate_gridspecs(
-                    figure, _container_gs
-                )
+                item._generate_gridspecs(figure, _container_gs)
 
     def show(self):
         """
@@ -585,9 +555,7 @@ class Compose:
             self._draw_annotation()
             self._draw_composition_background()
             self.theme.apply()
-            figure.set_layout_engine(
-                PlotnineLayoutEngine(self)
-            )
+            figure.set_layout_engine(PlotnineLayoutEngine(self))
 
         return figure
 
@@ -609,9 +577,7 @@ class Compose:
         from matplotlib.patches import Rectangle
 
         zorder = -1000
-        rect = Rectangle(
-            (0, 0), 0, 0, facecolor="none", zorder=zorder
-        )
+        rect = Rectangle((0, 0), 0, 0, facecolor="none", zorder=zorder)
         self.figure.add_artist(rect)
         self._gridspec.patch = rect
         self.theme.targets.plot_background = rect
@@ -656,14 +622,10 @@ class Compose:
             targets.plot_title = figure.text(0, 0, title)
 
         if subtitle := self.annotation.subtitle:
-            targets.plot_subtitle = figure.text(
-                0, 0, subtitle
-            )
+            targets.plot_subtitle = figure.text(0, 0, subtitle)
 
         if caption := self.annotation.caption:
-            targets.plot_caption = figure.text(
-                0, 0, caption
-            )
+            targets.plot_caption = figure.text(0, 0, caption)
 
         if footer := self.annotation.footer:
             targets.plot_footer = figure.text(0, 0, footer)

@@ -17,11 +17,15 @@ from plotnine.facets.facet import (
 )
 from plotnine.facets.strips import Strips, strip
 
+from ..guides import apply_axis_guides
+from .scale_facet import apply_scale_facets
+
 if TYPE_CHECKING:
     from typing import Optional, Sequence, Union
 
     from matplotlib.axes import Axes
     from plotnine.iapi import layout_details
+    from plotnine.scales.scale import scale
 
 
 def _parse_design(design: str) -> np.ndarray:
@@ -93,6 +97,11 @@ class facet_manual(facet):
         as_table: bool = True,
         drop: bool = True,
         respect: bool = False,
+        widths: Optional[Sequence[float]] = None,
+        heights: Optional[Sequence[float]] = None,
+        axes: Literal["all", "x", "y", "margins"] = "margins",
+        remove_labels: Literal["none", "x", "y", "all"] = "none",
+        trim_blank: bool = False,
     ):
         super().__init__(
             scales=scales,
@@ -104,6 +113,11 @@ class facet_manual(facet):
         self.facets = facets
         self.design = design
         self.respect = respect
+        self.widths = list(widths) if widths is not None else None
+        self.heights = list(heights) if heights is not None else None
+        self.axes = axes
+        self.remove_labels = remove_labels
+        self.trim_blank = trim_blank
         self._design_matrix: Optional[np.ndarray] = None
 
         if design is not None:
@@ -129,14 +143,18 @@ class facet_manual(facet):
             raise ValueError(msg)
 
         design = self._design_matrix
+        design, kept_rows, kept_cols = self._trim_design(design)
+        self._trim_sizes(kept_rows, kept_cols)
 
         # Extract unique panel labels from design, preserving order,
-        # excluding '#' (empty cells)
+        # excluding '#' / NA (empty cells)
         labels: list[str] = []
         for row in design:
             for cell in row:
-                if cell != "#" and cell not in labels:
-                    labels.append(cell)
+                if not _is_empty_design_cell(cell):
+                    label = str(cell)
+                    if label not in labels:
+                        labels.append(label)
 
         # Get facet variable combinations from data
         if self.vars:
@@ -146,27 +164,39 @@ class facet_manual(facet):
         else:
             base = pd.DataFrame({"_dummy_": [1]})
 
-        n_panels = min(len(labels), len(base))
+        if len(labels) < len(base):
+            msg = (
+                "facet_manual design does not provide enough panels "
+                f"for {len(base)} facet combinations"
+            )
+            raise ValueError(msg)
+        if len(labels) > len(base):
+            msg = (
+                "facet_manual design provides more panels than facet "
+                f"combinations ({len(labels)} labels for {len(base)} panels)"
+            )
+            raise ValueError(msg)
+
+        n_panels = len(base)
 
         rows_list = []
         for i in range(n_panels):
             label = labels[i]
-            # Find position of this label in the design matrix
-            r_pos, c_pos = 1, 1
-            for r_idx in range(design.shape[0]):
-                for c_idx in range(design.shape[1]):
-                    if design[r_idx, c_idx] == label:
-                        r_pos = r_idx + 1
-                        c_pos = c_idx + 1
-                        break
-                else:
-                    continue
-                break
+            positions = np.argwhere(design.astype(str) == label)
+            if positions.size == 0:
+                msg = f"facet_manual design label {label!r} not found"
+                raise ValueError(msg)
+            row_min, col_min = positions.min(axis=0)
+            row_max, col_max = positions.max(axis=0)
+            r_pos = int(row_min + 1)
+            c_pos = int(col_min + 1)
 
             row_data: dict = {
                 "PANEL": i + 1,
                 "ROW": r_pos,
                 "COL": c_pos,
+                "ROWSPAN": int(row_max - row_min + 1),
+                "COLSPAN": int(col_max - col_min + 1),
                 "SCALE_X": i + 1 if self.free["x"] else 1,
                 "SCALE_Y": i + 1 if self.free["y"] else 1,
                 "AXIS_X": True,
@@ -191,7 +221,60 @@ class facet_manual(facet):
 
         self.nrow = int(design.shape[0])
         self.ncol = int(design.shape[1])
+        self._apply_axis_flags(layout)
         return layout
+
+    def _trim_design(
+        self,
+        design: np.ndarray,
+    ) -> tuple[np.ndarray, list[int], list[int]]:
+        if not self.trim_blank:
+            return (
+                design,
+                list(range(design.shape[0])),
+                list(range(design.shape[1])),
+            )
+
+        row_mask = [
+            any(not _is_empty_design_cell(cell) for cell in design[i, :])
+            for i in range(design.shape[0])
+        ]
+        col_mask = [
+            any(not _is_empty_design_cell(cell) for cell in design[:, j])
+            for j in range(design.shape[1])
+        ]
+        kept_rows = [i for i, keep in enumerate(row_mask) if keep]
+        kept_cols = [i for i, keep in enumerate(col_mask) if keep]
+        if not kept_rows or not kept_cols:
+            msg = "facet_manual design contains no panels"
+            raise ValueError(msg)
+        trimmed = design[np.ix_(kept_rows, kept_cols)]
+        return trimmed, kept_rows, kept_cols
+
+    def _trim_sizes(self, rows: list[int], cols: list[int]) -> None:
+        if self.widths is not None:
+            self.widths = [self.widths[i] for i in cols]
+        if self.heights is not None:
+            self.heights = [self.heights[i] for i in rows]
+
+    def _apply_axis_flags(self, layout: pd.DataFrame) -> None:
+        if self.axes == "all":
+            layout["AXIS_X"] = True
+            layout["AXIS_Y"] = True
+        elif self.axes == "x":
+            layout["AXIS_X"] = True
+            layout["AXIS_Y"] = False
+        elif self.axes == "y":
+            layout["AXIS_X"] = False
+            layout["AXIS_Y"] = True
+
+        if self.remove_labels == "all":
+            layout["AXIS_X"] = False
+            layout["AXIS_Y"] = False
+        elif self.remove_labels == "x":
+            layout["AXIS_X"] = False
+        elif self.remove_labels == "y":
+            layout["AXIS_Y"] = False
 
     def map(self, data: pd.DataFrame, layout: pd.DataFrame) -> pd.DataFrame:
         if not len(data):
@@ -236,3 +319,45 @@ class facet_manual(facet):
             return Strips([])
         s = strip(self.vars, layout_info, self, ax, "top")
         return Strips([s])
+
+    def init_scales(
+        self,
+        layout: pd.DataFrame,
+        x_scale: Optional[scale] = None,
+        y_scale: Optional[scale] = None,
+    ) -> object:
+        import types
+
+        from plotnine.scales.scales import Scales
+
+        scales = types.SimpleNamespace()
+
+        if x_scale is not None:
+            n = layout["SCALE_X"].max()
+            scales.x = Scales([x_scale.clone() for _i in range(n)])
+
+        if y_scale is not None:
+            n = layout["SCALE_Y"].max()
+            scales.y = Scales([y_scale.clone() for _i in range(n)])
+
+        plot = getattr(self, "plot", None)
+        fps = getattr(plot, "_facetted_pos_scales", None)
+        if fps is not None:
+            fps.apply(scales)
+        scale_facets = getattr(self, "_scale_facets", None)
+        if scale_facets is None:
+            scale_facets = getattr(plot, "_scale_facets", [])
+        apply_scale_facets(scales, layout, scale_facets)
+
+        return scales
+
+    def set_limits_breaks_and_labels(self, panel_params, ax):
+        super().set_limits_breaks_and_labels(panel_params, ax)
+        apply_axis_guides(self, panel_params, ax)
+
+
+def _is_empty_design_cell(cell: object) -> bool:
+    if pd.isna(cell):
+        return True
+    text = str(cell)
+    return text == "#" or text.upper() == "NA"

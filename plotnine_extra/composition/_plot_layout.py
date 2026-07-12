@@ -71,8 +71,7 @@ class plot_layout(ComposeAddable):
                 self.ncol = len(cmp)
             elif self.ncol < len(cmp):
                 raise ValueError(
-                    "Composition has more items than the "
-                    "layout columns."
+                    "Composition has more items than the layout columns."
                 )
             if self.nrow is None:
                 self.nrow = 1
@@ -81,8 +80,7 @@ class plot_layout(ComposeAddable):
                 self.nrow = len(cmp)
             elif self.nrow < len(cmp):
                 raise ValueError(
-                    "Composition has more items than the "
-                    "layout rows."
+                    "Composition has more items than the layout rows."
                 )
 
             if self.ncol is None:
@@ -90,9 +88,7 @@ class plot_layout(ComposeAddable):
         else:
             from plotnine.facets.facet_wrap import wrap_dims
 
-            self.nrow, self.ncol = wrap_dims(
-                len(cmp), self.nrow, self.ncol
-            )
+            self.nrow, self.ncol = wrap_dims(len(cmp), self.nrow, self.ncol)
 
         nrow, ncol = self.nrow, self.ncol
 

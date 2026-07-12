@@ -38,9 +38,7 @@ class plot_spacer(ggplot):
         super().__init__()
         self.theme = theme_void()
         if fill:
-            self.theme += theme(
-                plot_background=element_rect(fill=fill)
-            )
+            self.theme += theme(plot_background=element_rect(fill=fill))
 
     def __add__(self, rhs) -> plot_spacer:  # pyright: ignore[reportIncompatibleMethodOverride]
         """

@@ -174,8 +174,18 @@ wine = pd.read_csv(_DATA_DIR / "wine.csv")
 
 # -- flights ------------------------------------------------------------------
 _MONTH_ORDER = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
 ]
 flights = pd.read_csv(_DATA_DIR / "flights.csv")
 flights["month"] = pd.Categorical(

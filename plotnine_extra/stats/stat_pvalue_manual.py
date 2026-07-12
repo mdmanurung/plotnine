@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from plotnine import aes, geom_segment, geom_text
 
-from ._p_format import p_to_signif
+from ._p_format import format_p_value, p_to_signif
 
 
 def stat_pvalue_manual(
@@ -32,6 +32,7 @@ def stat_pvalue_manual(
     label_size: float = 8,
     vjust: float = -0.5,
     color: str = "black",
+    x_levels: list | tuple | None = None,
     **kwargs: Any,
 ) -> list:
     """
@@ -95,17 +96,12 @@ def stat_pvalue_manual(
         df["_label"] = label
     else:
         p_col = _find_p_column(df)
-        df["_label"] = df[p_col].apply(
-            lambda p: f"p = {p:.3g}"
-        )
+        df["_label"] = df[p_col].apply(format_p_value)
 
     # Resolve y_position
     if isinstance(y_position, (int, float)):
         df["_y_pos"] = float(y_position)
-    elif (
-        isinstance(y_position, str)
-        and y_position in df.columns
-    ):
+    elif isinstance(y_position, str) and y_position in df.columns:
         df["_y_pos"] = df[y_position].astype(float)
     else:
         # Try common column names
@@ -122,18 +118,19 @@ def stat_pvalue_manual(
 
     # Resolve xmin/xmax
     if xmin and xmin in df.columns:
-        df["_xmin"] = df[xmin]
+        xmin_values = df[xmin]
     else:
-        raise ValueError(
-            f"Column '{xmin}' not found in data"
-        )
+        raise ValueError(f"Column '{xmin}' not found in data")
 
     if xmax and xmax in df.columns:
-        df["_xmax"] = df[xmax]
+        xmax_values = df[xmax]
     else:
-        raise ValueError(
-            f"Column '{xmax}' not found in data"
-        )
+        raise ValueError(f"Column '{xmax}' not found in data")
+    df["_xmin"], df["_xmax"] = _map_x_positions(
+        xmin_values,
+        xmax_values,
+        x_levels,
+    )
 
     # Filter non-significant if requested
     if hide_ns:
@@ -150,9 +147,7 @@ def stat_pvalue_manual(
         groups = df.groupby(step_group_by)
         for _, group_df in groups:
             for i, idx in enumerate(group_df.index):
-                df.loc[idx, "_y_pos"] += (
-                    step_increase * i * y_max
-                )
+                df.loc[idx, "_y_pos"] += step_increase * i * y_max
     else:
         steps = np.arange(len(df)) * step_increase * y_max
         df["_y_pos"] += steps
@@ -174,9 +169,7 @@ def stat_pvalue_manual(
         layers.append(
             geom_segment(
                 data=bracket_data,
-                mapping=aes(
-                    x="x", xend="xend", y="y", yend="yend"
-                ),
+                mapping=aes(x="x", xend="xend", y="y", yend="yend"),
                 inherit_aes=False,
                 color=color,
                 **kwargs,
@@ -200,9 +193,7 @@ def stat_pvalue_manual(
         layers.append(
             geom_segment(
                 data=left_tips,
-                mapping=aes(
-                    x="x", xend="xend", y="y", yend="yend"
-                ),
+                mapping=aes(x="x", xend="xend", y="y", yend="yend"),
                 inherit_aes=False,
                 color=color,
                 **kwargs,
@@ -221,9 +212,7 @@ def stat_pvalue_manual(
         layers.append(
             geom_segment(
                 data=right_tips,
-                mapping=aes(
-                    x="x", xend="xend", y="y", yend="yend"
-                ),
+                mapping=aes(x="x", xend="xend", y="y", yend="yend"),
                 inherit_aes=False,
                 color=color,
                 **kwargs,
@@ -262,3 +251,32 @@ def _find_p_column(df: pd.DataFrame) -> str:
         "No p-value column found. Expected one of: "
         "'p', 'p.adj', 'p_adj', 'pvalue', 'p_value'"
     )
+
+
+def _map_x_positions(
+    xmin_values: pd.Series,
+    xmax_values: pd.Series,
+    x_levels: list | tuple | None,
+) -> tuple[pd.Series, pd.Series]:
+    """Map string group labels to numeric plot positions."""
+    if (
+        pd.api.types.is_numeric_dtype(xmin_values)
+        and pd.api.types.is_numeric_dtype(xmax_values)
+        and x_levels is None
+    ):
+        return xmin_values.astype(float), xmax_values.astype(float)
+
+    if x_levels is None:
+        levels = []
+        for value in pd.concat([xmin_values, xmax_values], ignore_index=True):
+            if value not in levels:
+                levels.append(value)
+    else:
+        levels = list(x_levels)
+
+    lookup = {value: i + 1.0 for i, value in enumerate(levels)}
+    missing = (set(xmin_values) | set(xmax_values)) - set(lookup)
+    if missing:
+        raise ValueError(f"x_levels missing groups: {sorted(missing)!r}")
+
+    return xmin_values.map(lookup), xmax_values.map(lookup)

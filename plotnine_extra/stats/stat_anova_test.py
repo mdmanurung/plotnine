@@ -99,18 +99,13 @@ class stat_anova_test(_base_stat_test):
         all_data = np.concatenate(groups)
         grand_mean = np.mean(all_data)
         ss_between = sum(
-            len(g) * (np.mean(g) - grand_mean) ** 2
-            for g in groups
+            len(g) * (np.mean(g) - grand_mean) ** 2 for g in groups
         )
         ss_total = np.sum((all_data - grand_mean) ** 2)
-        eta_sq = (
-            ss_between / ss_total if ss_total > 0 else 0
-        )
+        eta_sq = ss_between / ss_total if ss_total > 0 else 0
 
         df1 = result.df if result.df is not None else np.nan
-        df2 = (
-            result.df2 if result.df2 is not None else np.nan
-        )
+        df2 = result.df2 if result.df2 is not None else np.nan
 
         label = (
             f"F({df1:.0f}, {df2:.0f})"

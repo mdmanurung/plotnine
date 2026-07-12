@@ -85,4 +85,4 @@ def test_version():
     """Verify version is set."""
     import plotnine_extra
 
-    assert plotnine_extra.__version__ == "0.3.0"
+    assert plotnine_extra.__version__ == "0.3.1"

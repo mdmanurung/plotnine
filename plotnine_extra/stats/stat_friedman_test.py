@@ -3,8 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from plotnine.doctools import document
+from plotnine.mapping.evaluation import after_stat
 
 from ._base_stat_test import _base_stat_test
+from ._common import add_wid_mapping, blocked_values_by_wid
 
 if TYPE_CHECKING:
     import numpy as np
@@ -65,12 +67,27 @@ class stat_friedman_test(_base_stat_test):
         "label_y_npc": "top",
         "p_digits": 3,
     }
+    DEFAULT_AES = {"label": after_stat("label"), "wid": None}
     CREATES = {
-        "label", "p", "p_signif", "statistic", "df", "method",
+        "label",
+        "p",
+        "p_signif",
+        "statistic",
+        "df",
+        "method",
     }
 
     _test_method = "friedman.test"
     _min_groups = 3
+
+    def __init__(self, mapping=None, data=None, **kwargs):
+        wid = kwargs.get("wid")
+        mapping = add_wid_mapping(mapping, kwargs)
+        if wid is not None:
+            kwargs = kwargs.copy()
+            kwargs.pop("wid", None)
+        super().__init__(mapping, data, **kwargs)
+        self.params["wid"] = wid
 
     def _extract_groups(
         self,
@@ -80,25 +97,4 @@ class stat_friedman_test(_base_stat_test):
         Extract groups, using *wid* for subject alignment
         when available.
         """
-        wid = self.params.get("wid")
-
-        if wid and wid in data.columns:
-            groups = []
-            for _, grp in data.groupby("x"):
-                sorted_vals = (
-                    grp.sort_values(wid)["y"]
-                    .to_numpy(dtype=float)
-                )
-                groups.append(sorted_vals)
-        else:
-            groups = [
-                grp["y"].to_numpy(dtype=float)
-                for _, grp in data.groupby("x")
-            ]
-
-        # Ensure equal group sizes for Friedman test
-        if groups:
-            min_len = min(len(g) for g in groups)
-            groups = [g[:min_len] for g in groups]
-
-        return groups
+        return blocked_values_by_wid(data, self.params.get("wid"))
