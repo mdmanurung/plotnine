@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from plotnine.doctools import document
 from plotnine.stats.stat import stat
 from scipy.spatial import ConvexHull
 
 
-@document
 class stat_chull(stat):
     """
     Compute the convex hull of a set of points

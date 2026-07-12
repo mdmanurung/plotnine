@@ -92,7 +92,7 @@ ani.save("animation.gif")
 ## Compatibility
 
 - Requires Python ≥ 3.10
-- Requires plotnine ≥ 0.15.3
+- Requires plotnine ≥ 0.15.3 and < 0.17
 
 > **Note:** The composition and animation modules use plotnine's internal APIs and may break with future plotnine updates. Pin your plotnine version if stability is critical.
 

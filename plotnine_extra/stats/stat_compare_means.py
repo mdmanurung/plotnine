@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pandas as pd
-from plotnine.doctools import document
 from plotnine.mapping.evaluation import after_stat
 from plotnine.stats.stat import stat
 
@@ -11,7 +10,6 @@ from ._p_format import format_p_value, p_to_signif
 from ._stat_test import run_stat_test
 
 
-@document
 class stat_compare_means(stat):
     """
     Add mean comparison p-values to a plot

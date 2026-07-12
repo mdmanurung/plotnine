@@ -66,6 +66,7 @@ Datasets (via ``plotnine_extra.data``):
 import warnings as _warnings
 
 from plotnine import *  # noqa: F401, F403
+from plotnine import __all__ as _plotnine_all
 from plotnine import __version__ as _plotnine_version
 
 # Warn if plotnine version is untested
@@ -76,7 +77,7 @@ if not any(_plotnine_version.startswith(v) for v in _tested_plotnine):
         f"0.15.x-0.16.x but you have "
         f"{_plotnine_version}."
         f" Some features may not work correctly.",
-        stacklevel=1,
+        stacklevel=2,
     )
 
 from .animation import PlotnineAnimation  # noqa: E402
@@ -365,6 +366,4 @@ _extra_all = (
     "PlotnineAnimation",
 )
 
-__all__ = (  # noqa: F405
-    *_extra_all,
-)
+__all__ = tuple(dict.fromkeys((*_plotnine_all, *_extra_all)))

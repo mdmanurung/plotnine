@@ -23,7 +23,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization"
 ]
 dependencies = [
-    "plotnine>=0.15.3",
+    "plotnine>=0.15.3,<0.17",
     "scipy>=1.10.0",
 ]
 requires-python = ">=3.10"

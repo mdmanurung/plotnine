@@ -12,7 +12,6 @@ from itertools import combinations
 
 import numpy as np
 import pandas as pd
-from plotnine.doctools import document
 from plotnine.mapping.evaluation import after_stat
 from plotnine.stats.stat import stat
 
@@ -21,7 +20,6 @@ from ._p_format import format_p_value, p_to_signif
 from ._stat_test import run_stat_test
 
 
-@document
 class stat_pwc(stat):
     """
     Add pairwise comparison p-values to a plot
@@ -359,16 +357,16 @@ def _adjust_pvalues(
     np.ndarray
         Adjusted p-values.
     """
-    n = len(p_values)
-    if n <= 1 or method == "none":
-        return p_values.copy()
+    p = np.asarray(p_values, dtype=float)
+    n = len(p)
+    method_key = method.lower()
+    if n <= 1 or method_key == "none":
+        return p.copy()
 
-    p = p_values.copy()
-
-    if method == "bonferroni":
+    if method_key == "bonferroni":
         return np.minimum(p * n, 1.0)
 
-    elif method == "holm":
+    elif method_key == "holm":
         order = np.argsort(p)
         sorted_p = p[order]
         adjusted = np.empty(n)
@@ -382,7 +380,7 @@ def _adjust_pvalues(
         result[order] = adjusted
         return result
 
-    elif method == "hochberg":
+    elif method_key == "hochberg":
         order = np.argsort(p)[::-1]
         sorted_p = p[order]
         adjusted = np.empty(n)
@@ -396,7 +394,7 @@ def _adjust_pvalues(
         result[order] = adjusted
         return result
 
-    elif method in ("BH", "fdr"):
+    elif method_key in ("bh", "fdr"):
         order = np.argsort(p)[::-1]
         sorted_p = p[order]
         adjusted = np.empty(n)
@@ -411,7 +409,7 @@ def _adjust_pvalues(
         result[order] = adjusted
         return result
 
-    elif method == "BY":
+    elif method_key == "by":
         order = np.argsort(p)[::-1]
         sorted_p = p[order]
         q = sum(1.0 / i for i in range(1, n + 1))
@@ -426,27 +424,21 @@ def _adjust_pvalues(
         result[order] = adjusted
         return result
 
-    elif method == "hommel":
-        # Hommel's step-down procedure
+    elif method_key == "hommel":
         order = np.argsort(p)
         sorted_p = p[order]
-        adjusted = sorted_p.copy() * n
-
-        for i in range(n - 1, 0, -1):
-            lower = np.arange(1, n - i + 1)
-            q_values = sorted_p[i:n] * i / lower
-            q_min = np.min(q_values)
-            adjusted[:i] = np.minimum(adjusted[:i], q_min)
-            adjusted[i] = max(adjusted[i], q_min)
-
-        # Enforce monotonicity
-        for i in range(1, n):
-            adjusted[i] = max(adjusted[i], adjusted[i - 1])
+        adjusted = sorted_p.copy()
+        for m in range(n, 1, -1):
+            cim = np.min(m * sorted_p[-m:] / np.arange(1, m + 1))
+            adjusted[-m:] = np.maximum(adjusted[-m:], cim)
+            adjusted[:-m] = np.maximum(
+                adjusted[:-m],
+                np.minimum(m * sorted_p[:-m], cim),
+            )
         adjusted = np.minimum(adjusted, 1.0)
         result = np.empty(n)
         result[order] = adjusted
         return result
 
     else:
-        # Unknown method, return unadjusted
-        return p.copy()
+        raise ValueError(f"Unknown p_adjust_method: {method}")

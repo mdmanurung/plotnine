@@ -8,7 +8,9 @@ and _stat_test.py.
 import numpy as np
 import pandas as pd
 import pytest
+from scipy import stats as sp_stats
 
+from plotnine_extra.stats.stat_pwc import _adjust_pvalues
 from plotnine_extra.stats._common import (
     preserve_panel_columns,
 )
@@ -283,6 +285,20 @@ class TestRunStatTest:
         assert r.method == "Welch Two Sample t-test"
         assert r.df is not None
 
+    def test_ttest_independent_uses_welch_semantics(self):
+        g1 = np.array([1.0, 1.2, 1.4, 1.6])
+        g2 = np.array([2.0, 4.0, 8.0, 16.0, 32.0])
+
+        r = run_stat_test([g1, g2], method="t.test")
+        expected = sp_stats.ttest_ind(g1, g2, equal_var=False)
+
+        assert r.method == "Welch Two Sample t-test"
+        assert r.p_value == pytest.approx(expected.pvalue)
+        assert r.p_value != pytest.approx(
+            sp_stats.ttest_ind(g1, g2, equal_var=True).pvalue
+        )
+        assert r.df == pytest.approx(expected.df)
+
     def test_ttest_paired(self):
         g1 = np.array([1.0, 2, 3, 4, 5])
         g2 = np.array([2.0, 3, 4, 5, 6])
@@ -290,6 +306,7 @@ class TestRunStatTest:
             [g1, g2], method="t.test", paired=True
         )
         assert r.method == "Paired t-test"
+        assert r.df == 4
 
     def test_ttest_wrong_groups(self):
         with pytest.raises(ValueError, match="exactly 2"):
@@ -419,3 +436,18 @@ class TestRunStatTest:
             alternative="greater",
         )
         assert r.alternative == "greater"
+
+
+class TestAdjustPValues:
+    def test_hommel_matches_reference_values(self):
+        p_values = np.array([0.001, 0.04, 0.03, 0.2, 0.9])
+
+        adjusted = _adjust_pvalues(p_values, "hommel")
+
+        assert adjusted == pytest.approx(
+            np.array([0.005, 0.12, 0.09, 0.4, 0.9])
+        )
+
+    def test_unknown_adjustment_method_raises(self):
+        with pytest.raises(ValueError, match="Unknown p_adjust_method"):
+            _adjust_pvalues(np.array([0.01, 0.02]), "not-a-method")

@@ -98,17 +98,31 @@ def _run_ttest(
         raise ValueError("t-test requires exactly 2 groups")
 
     if paired:
+        if len(groups[0]) != len(groups[1]):
+            raise ValueError("paired t-test requires equal-length groups")
         result = sp_stats.ttest_rel(
             groups[0], groups[1], alternative=alternative
         )
         method = "Paired t-test"
+        df = len(groups[0]) - 1
     else:
         result = sp_stats.ttest_ind(
-            groups[0], groups[1], alternative=alternative
+            groups[0],
+            groups[1],
+            alternative=alternative,
+            equal_var=False,
         )
         method = "Welch Two Sample t-test"
+        n1 = len(groups[0])
+        n2 = len(groups[1])
+        v1 = np.var(groups[0], ddof=1)
+        v2 = np.var(groups[1], ddof=1)
+        se1 = v1 / n1
+        se2 = v2 / n2
+        df = (se1 + se2) ** 2 / (
+            (se1**2 / (n1 - 1)) + (se2**2 / (n2 - 1))
+        )
 
-    df = len(groups[0]) + len(groups[1]) - 2
     return StatTestResult(
         statistic=result.statistic,
         p_value=result.pvalue,

@@ -39,6 +39,17 @@ def test_plotnine_reexports():
     assert callable(theme_bw)
 
 
+def test_star_import_reexports_plotnine_and_extras():
+    """Verify star import matches the documented convenience API."""
+    namespace = {}
+    exec("from plotnine_extra import *", namespace)
+
+    assert callable(namespace["ggplot"])
+    assert callable(namespace["aes"])
+    assert callable(namespace["geom_bar"])
+    assert callable(namespace["geom_pointdensity"])
+
+
 def test_extra_geoms_with_ggplot():
     """Verify extra geoms work with plotnine ggplot."""
     from plotnine_extra import aes, geom_pointdensity, ggplot
