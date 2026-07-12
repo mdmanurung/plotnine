@@ -76,8 +76,9 @@ def ggplot_equals(plot: ggplot, name: str) -> bool:
     with _test_cleanup():
         plot.save(filenames.result, verbose=False)
 
-    if filenames.baseline.exists():
-        shutil.copyfile(filenames.baseline, filenames.expected)
+    baseline = select_baseline_image(filenames.baseline)
+    if baseline.exists():
+        shutil.copyfile(baseline, filenames.expected)
     else:
         # Putting the exception in short function makes for
         #  short pytest error messages
@@ -188,6 +189,22 @@ def make_test_image_filenames(name, test_file):
     return filenames
 
 
+def select_baseline_image(baseline: Path) -> Path:
+    """
+    Select a renderer-specific baseline image when one is available.
+
+    Matplotlib 3.11 changed raster output for a small set of image tests.
+    Keep the existing baseline for older Matplotlib versions and use explicit
+    versioned baselines on newer renderers.
+    """
+    version = tuple(int(part) for part in mpl.__version__.split(".")[:2])
+    if version >= (3, 11):
+        mpl311 = baseline.with_name(f"{baseline.stem}-mpl311{baseline.suffix}")
+        if mpl311.exists():
+            return mpl311
+    return baseline
+
+
 class _test_cleanup:
     def __enter__(self):
         # The baseline images are created in this locale, so we should use
@@ -248,8 +265,9 @@ def composition_equals(cmp: Compose, name: str) -> bool:
     with _test_cleanup():
         _cmp.save(filenames.result)
 
-    if filenames.baseline.exists():
-        shutil.copyfile(filenames.baseline, filenames.expected)
+    baseline = select_baseline_image(filenames.baseline)
+    if baseline.exists():
+        shutil.copyfile(baseline, filenames.expected)
     else:
         # Putting the exception in short function makes for
         #  short pytest error messages
