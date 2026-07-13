@@ -68,7 +68,10 @@ def add_wid_mapping(mapping, kwargs: dict):
     return mapping
 
 
-def is_horizontal_orientation(data: pd.DataFrame) -> bool:
+def is_horizontal_orientation(
+    data: pd.DataFrame,
+    scales: object | None = None,
+) -> bool:
     """
     Detect continuous-x/discrete-y horizontal stat orientation.
 
@@ -79,22 +82,38 @@ def is_horizontal_orientation(data: pd.DataFrame) -> bool:
     if "x" not in data.columns or "y" not in data.columns:
         return False
 
+    if scales is not None:
+        x_scale = getattr(scales, "x", None)
+        y_scale = getattr(scales, "y", None)
+        if x_scale is not None and y_scale is not None:
+            return _is_continuous_scale(x_scale) and _is_discrete_scale(
+                y_scale
+            )
+
     x_vals = pd.to_numeric(data["x"], errors="coerce").dropna()
     y_vals = pd.to_numeric(data["y"], errors="coerce").dropna()
     if x_vals.empty or y_vals.empty:
         return False
 
-    x_discrete = _looks_discrete_position(x_vals)
-    y_discrete = _looks_discrete_position(y_vals)
-    return (not x_discrete) and y_discrete
+    x_integer = _looks_integer_position(x_vals)
+    y_integer = _looks_integer_position(y_vals)
+    if not x_integer:
+        return y_integer
+    if not y_integer:
+        return False
+
+    x_unique_ratio = x_vals.nunique() / len(x_vals)
+    y_unique_ratio = y_vals.nunique() / len(y_vals)
+    return y_unique_ratio < x_unique_ratio
 
 
 def require_vertical_orientation(
     data: pd.DataFrame,
     stat_name: str,
+    scales: object | None = None,
 ) -> None:
     """Raise for unsupported horizontal orientation."""
-    if is_horizontal_orientation(data):
+    if is_horizontal_orientation(data, scales):
         msg = (
             f"{stat_name} does not yet support horizontal orientation "
             "(continuous x with discrete y). Put the discrete variable on "
@@ -165,11 +184,20 @@ def blocked_values_by_wid(
     return [blocked[group].to_numpy(dtype=float) for group in group_order]
 
 
-def _looks_discrete_position(series: pd.Series) -> bool:
+def _looks_integer_position(series: pd.Series) -> bool:
     arr = series.to_numpy(dtype=float)
-    if not np.allclose(arr, np.round(arr)):
-        return False
-    return series.nunique() <= 50
+    return np.allclose(arr, np.round(arr))
+
+
+def _is_discrete_scale(scale: object) -> bool:
+    return "discrete" in type(scale).__name__
+
+
+def _is_continuous_scale(scale: object) -> bool:
+    name = type(scale).__name__
+    return "continuous" in name or bool(
+        getattr(scale, "domain_is_numerical", False)
+    )
 
 
 def _resolve_wid_column(data: pd.DataFrame, wid: str) -> str:

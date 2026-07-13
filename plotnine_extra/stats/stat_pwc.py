@@ -161,7 +161,7 @@ class stat_pwc(stat):
         self._kwargs.pop("label", None)
 
     def compute_panel(self, data, scales):
-        require_vertical_orientation(data, "stat_pwc")
+        require_vertical_orientation(data, "stat_pwc", scales)
         method = self.params["method"]
         paired = self.params["paired"]
         wid = self.params.get("wid")

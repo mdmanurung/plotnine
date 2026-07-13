@@ -108,7 +108,7 @@ class stat_compare_means(stat):
         self._kwargs.pop("label", None)
 
     def compute_panel(self, data, scales) -> pd.DataFrame:
-        require_vertical_orientation(data, "stat_compare_means")
+        require_vertical_orientation(data, "stat_compare_means", scales)
         method = self.params["method"]
         paired = self.params["paired"]
         wid = self.params.get("wid")
@@ -160,7 +160,14 @@ class stat_compare_means(stat):
             pairs = [(ref_key, g) for g in group_names if g != ref_key]
         else:
             # Global test
-            return self._global_test(data, grouped, group_names, method)
+            return self._global_test(
+                data,
+                grouped,
+                group_names,
+                method,
+                paired,
+                wid,
+            )
 
         # Pairwise comparisons
         return self._pairwise_test(
@@ -176,9 +183,34 @@ class stat_compare_means(stat):
             wid,
         )
 
-    def _global_test(self, data, grouped, group_names, method):
+    def _global_test(self, data, grouped, group_names, method, paired, wid):
         """Run a global test across all groups."""
-        groups = [grouped[g]["y"].to_numpy(dtype=float) for g in group_names]
+        if paired:
+            if len(group_names) != 2:
+                msg = (
+                    "paired global stat_compare_means tests are only "
+                    "supported for exactly two groups; provide explicit "
+                    "comparisons for pairwise paired tests"
+                )
+                raise NotImplementedError(msg)
+            if method not in ("t.test", "wilcox.test"):
+                msg = (
+                    "paired global stat_compare_means only supports "
+                    "'t.test' and 'wilcox.test'"
+                )
+                raise NotImplementedError(msg)
+            groups = list(
+                paired_values_by_wid(
+                    data,
+                    group_names[0],
+                    group_names[1],
+                    wid,
+                )
+            )
+        else:
+            groups = [
+                grouped[g]["y"].to_numpy(dtype=float) for g in group_names
+            ]
 
         # For 2 groups, use pairwise test method
         # For >2 groups, use ANOVA or Kruskal-Wallis
@@ -192,7 +224,7 @@ class stat_compare_means(stat):
         else:
             global_method = method
 
-        result = run_stat_test(groups, method=global_method)
+        result = run_stat_test(groups, method=global_method, paired=paired)
         p_digits = self.params["p_digits"]
         p_signif = p_to_signif(result.p_value)
 

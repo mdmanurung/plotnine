@@ -6,7 +6,11 @@ from plotnine.doctools import document
 from plotnine.mapping.evaluation import after_stat
 
 from ._base_stat_test import _base_stat_test
-from ._common import add_wid_mapping, blocked_values_by_wid
+from ._common import (
+    add_wid_mapping,
+    blocked_values_by_wid,
+    require_vertical_orientation,
+)
 
 if TYPE_CHECKING:
     import numpy as np
@@ -98,3 +102,7 @@ class stat_friedman_test(_base_stat_test):
         when available.
         """
         return blocked_values_by_wid(data, self.params.get("wid"))
+
+    def compute_panel(self, data: pd.DataFrame, scales) -> pd.DataFrame:
+        require_vertical_orientation(data, "stat_friedman_test", scales)
+        return super().compute_panel(data, scales)

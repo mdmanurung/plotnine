@@ -9,6 +9,7 @@ handled by the extended facet classes in :mod:`plotnine_extra.facets`.
 from __future__ import annotations
 
 import hashlib
+from copy import copy
 from itertools import islice
 from typing import TYPE_CHECKING
 
@@ -221,6 +222,8 @@ class guide_stringlegend(guide_legend):  # noqa: N801
 
     def __radd__(self, other):
         other.guides.color = self
+        other.guides.colour = copy(self)
+        other.guides.fill = copy(self)
         return other
 
     def __add__(self, other):
@@ -450,7 +453,10 @@ def _apply_manual(
     _style_major_labels(
         ax,
         axis,
-        colours=options.get("label_colour") or options.get("label_color"),
+        colours=_first_non_none(
+            options.get("label_colour"),
+            options.get("label_color"),
+        ),
         sizes=options.get("label_size"),
         angle=options.get("angle"),
     )
@@ -460,7 +466,7 @@ def _apply_manual(
 
 
 def _apply_colour(ax: "Axes", axis: str, options: dict[str, Any]) -> None:
-    colours = options.get("colours") or options.get("colors")
+    colours = _first_non_none(options.get("colours"), options.get("colors"))
     _style_major_labels(ax, axis, colours=colours)
     _apply_axis_colour(ax, axis, options)
 
@@ -484,6 +490,7 @@ def _apply_logticks(
     axis: str,
     options: dict[str, Any],
 ) -> None:
+    _remove_artists_with_gid(ax, "plotnine_extra_axis_logtick")
     sides = str(options.get("sides", "bl"))
     positions = _numeric_positions(view.minor_breaks)
     if not positions:
@@ -538,6 +545,7 @@ def _apply_scalebar(
     axis: str,
     options: dict[str, Any],
 ) -> None:
+    _remove_artists_with_gid(ax, "plotnine_extra_axis_scalebar")
     size = float(options.get("size", 1.0))
     label = options.get("label")
     if axis == "x":
@@ -559,7 +567,8 @@ def _apply_scalebar(
     line.set_gid("plotnine_extra_axis_scalebar")
     ax.add_line(line)
     if label:
-        ax.text(text_x, text_y, str(label), **text_kwargs)
+        text = ax.text(text_x, text_y, str(label), **text_kwargs)
+        text.set_gid("plotnine_extra_axis_scalebar")
 
 
 def _apply_nested(
@@ -568,6 +577,7 @@ def _apply_nested(
     axis: str,
     options: dict[str, Any],
 ) -> None:
+    _remove_artists_with_gid(ax, "plotnine_extra_axis_nested_line")
     delim = str(options.get("delim", "_"))
     labels = ["\n".join(str(label).split(delim)) for label in view.labels]
     _set_major_ticks(ax, axis, view.breaks, labels)
@@ -600,6 +610,7 @@ def _apply_dendro(
     axis: str,
     options: dict[str, Any],
 ) -> None:
+    _remove_artists_with_gid(ax, "plotnine_extra_axis_dendro")
     positions = _numeric_positions(view.breaks)
     if len(positions) < 2:
         return
@@ -631,14 +642,26 @@ def _apply_dendro(
 
 
 def _legend_layer_text_colours(guide_obj: guide_stringlegend) -> list[str]:
+    for col in ("color", "colour", "fill"):
+        if col in guide_obj.key.columns:
+            values = _valid_colour_values(guide_obj.key[col])
+            if values is not None:
+                return values
     for params in guide_obj._layer_parameters:
         for col in ("color", "colour", "fill"):
             if col in params.data.columns:
-                return [str(value) for value in params.data[col]]
-    for col in ("color", "colour", "fill"):
-        if col in guide_obj.key.columns:
-            return [str(value) for value in guide_obj.key[col]]
+                values = _valid_colour_values(params.data[col])
+                if values is not None:
+                    return values
     return ["black"] * len(guide_obj.key)
+
+
+def _valid_colour_values(values: Any) -> list[str] | None:
+    colours = [str(value) for value in values]
+    invalid = {"none", "nan", "nat", ""}
+    if colours and not all(value.lower() in invalid for value in colours):
+        return colours
+    return None
 
 
 def _axis_from_position(position: Any, default: str) -> str:
@@ -656,6 +679,18 @@ def _option_or_view(
 ) -> Any:
     value = options.get(key)
     return default if value is None else value
+
+
+def _first_non_none(*values: Any) -> Any:
+    for value in values:
+        if value is not None:
+            return value
+    return None
+
+
+def _remove_artists_with_gid(ax: "Axes", gid: str) -> None:
+    for artist in list(ax.findobj(lambda artist: artist.get_gid() == gid)):
+        artist.remove()
 
 
 def _set_major_ticks(

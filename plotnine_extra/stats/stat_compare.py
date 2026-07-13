@@ -199,7 +199,7 @@ class stat_compare(stat):
         # equivalent, so we detect the mismatch (continuous x +
         # discrete-looking y) and refuse rather than silently
         # producing wrong brackets.
-        require_vertical_orientation(data, "stat_compare")
+        require_vertical_orientation(data, "stat_compare", scales)
 
         # Add a synthetic group column if missing
         if "group" not in data.columns:

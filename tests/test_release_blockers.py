@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
@@ -44,6 +45,13 @@ from plotnine_extra.facets import (
     scale_y_facet,
 )
 from plotnine_extra.stats import _common
+
+
+@pytest.fixture(autouse=True)
+def close_figures():
+    plt.close("all")
+    yield
+    plt.close("all")
 
 
 def _simple_axis_data() -> pd.DataFrame:
@@ -151,6 +159,21 @@ def test_guide_axis_colour_sets_label_tick_and_spine_colours():
     )
 
 
+def test_axis_guides_accept_numpy_colour_vectors():
+    _, ax = _draw_axis_plot(
+        scale_x_continuous(
+            breaks=[0, 5],
+            labels=["a", "b"],
+            guide=guide_axis_manual(
+                label_colour=np.array(["#ff0000", "#0000ff"])
+            ),
+        )
+    )
+
+    labels = [text for text in ax.get_xticklabels() if text.get_text()]
+    assert [text.get_color() for text in labels] == ["#ff0000", "#0000ff"]
+
+
 def test_guide_axis_minor_draws_minor_ticks_and_labels():
     _, ax = _draw_axis_plot(
         scale_x_continuous(
@@ -206,7 +229,7 @@ def test_guide_axis_scalebar_draws_line_and_label():
         scale_x_continuous(guide=guide_axis_scalebar(size=2, label="2 units"))
     )
 
-    assert _artists_with_gid(fig, "plotnine_extra_axis_scalebar")
+    assert len(_artists_with_gid(fig, "plotnine_extra_axis_scalebar")) == 2
     assert any(
         isinstance(text, Text) and text.get_text() == "2 units"
         for text in fig.findobj(Text)
@@ -233,7 +256,7 @@ def test_guide_axis_nested_splits_labels_and_draws_nesting_line():
     assert [
         text.get_text() for text in ax.get_xticklabels() if text.get_text()
     ] == ["A\none", "A\ntwo"]
-    assert _artists_with_gid(fig, "plotnine_extra_axis_nested_line")
+    assert len(_artists_with_gid(fig, "plotnine_extra_axis_nested_line")) == 1
 
 
 def test_guide_dendro_draws_dendrogram_lines():
@@ -246,7 +269,7 @@ def test_guide_dendro_draws_dendrogram_lines():
         )
     )
 
-    assert _artists_with_gid(fig, "plotnine_extra_axis_dendro")
+    assert len(_artists_with_gid(fig, "plotnine_extra_axis_dendro")) == 2
 
 
 def test_guide_stringlegend_draws_coloured_text_without_key_boxes():
@@ -276,6 +299,58 @@ def test_guide_stringlegend_draws_coloured_text_without_key_boxes():
     assert len({text.get_color() for text in legend_text}) == 3
     assert {text.get_color() for text in legend_text} != {"black"}
     assert legend_keys == []
+
+
+def test_guide_stringlegend_added_to_fill_aesthetic_draws_coloured_text():
+    df = pd.DataFrame(
+        {
+            "x": [1, 2, 3],
+            "y": [1, 2, 3],
+            "grp": ["a", "b", "c"],
+        }
+    )
+    p = (
+        ggplot(df, aes("x", "y", fill="grp"))
+        + geom_point(size=4)
+        + guide_stringlegend(title="group")
+    )
+
+    fig = p.draw(show=False)
+    legend_text = [
+        text
+        for text in fig.findobj(Text)
+        if text.get_text() in {"a", "b", "c"}
+    ]
+
+    assert {text.get_text() for text in legend_text} == {"a", "b", "c"}
+    assert {text.get_color() for text in legend_text} != {"black"}
+
+
+def test_guide_stringlegend_added_to_color_and_fill_keeps_both_guides():
+    df = pd.DataFrame(
+        {
+            "x": ["a", "b", "c"],
+            "y": [1, 2, 3],
+            "outline": ["one", "two", "three"],
+            "inside": ["alpha", "beta", "gamma"],
+        }
+    )
+    p = (
+        ggplot(df, aes("x", "y", color="outline", fill="inside"))
+        + pe.geom_col()
+        + guide_stringlegend(title="group")
+    )
+
+    fig = p.draw(show=False)
+    labels = {
+        text.get_text(): text.get_color()
+        for text in fig.findobj(Text)
+        if text.get_text() in {"one", "two", "three", "alpha", "beta", "gamma"}
+    }
+
+    assert set(labels) == {"one", "two", "three", "alpha", "beta", "gamma"}
+    assert {labels[name] for name in {"one", "two", "three"}} != {"black"}
+    assert {labels[name] for name in {"alpha", "beta", "gamma"}} != {"black"}
 
 
 def test_scale_facet_selectors_override_panel_scales_by_priority():
@@ -358,6 +433,35 @@ def test_facet_manual_repeated_design_labels_create_span_metadata():
     assert layout["AXIS_Y"].all()
 
 
+def test_facet_manual_repeated_design_labels_render_spanning_axes():
+    df = pd.DataFrame({"x": [1, 2], "y": [1, 2], "g": ["A", "B"]})
+    p = (
+        ggplot(df, aes("x", "y"))
+        + geom_point()
+        + facet_manual("g", design="AA\nBB")
+    )
+
+    p.draw(show=False)
+    top = p.axs[0].get_position()
+    bottom = p.axs[1].get_position()
+
+    assert top.x0 == pytest.approx(bottom.x0)
+    assert top.width == pytest.approx(bottom.width)
+    assert top.y0 > bottom.y0
+
+
+def test_facet_manual_repeated_labels_must_form_rectangle():
+    df = pd.DataFrame({"x": [1, 2], "y": [1, 2], "g": ["A", "B"]})
+    p = (
+        ggplot(df, aes("x", "y"))
+        + geom_point()
+        + facet_manual("g", design="AA\nAB")
+    )
+
+    with pytest.raises(ValueError, match="must form a rectangle"):
+        p.draw(show=False)
+
+
 def test_facet_manual_too_few_design_labels_raise():
     df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["A", "B", "C"]})
     p = (
@@ -391,10 +495,33 @@ def test_facet_manual_empty_cells_trim_blank_and_remove_labels():
 
     assert p.facet.nrow == 1
     assert p.facet.ncol == 1
-    assert p.facet.widths == [3]
-    assert p.facet.heights == [1]
+    assert p.facet.widths == [1, 3]
+    assert p.facet.heights == [2, 1]
+    assert p.facet._panel_widths == [3]
+    assert p.facet._panel_heights == [1]
     assert layout["AXIS_X"].eq(False).all()
     assert layout["AXIS_Y"].eq(True).all()
+
+
+def test_facet_manual_trim_blank_can_draw_repeatedly():
+    df = pd.DataFrame({"x": [1], "y": [1], "g": ["A"]})
+    p = (
+        ggplot(df, aes("x", "y"))
+        + geom_point()
+        + facet_manual(
+            "g",
+            design=[["#", "#"], ["NA", "A"]],
+            trim_blank=True,
+            widths=[1, 3],
+            heights=[2, 1],
+        )
+    )
+
+    p.draw(show=False)
+    p.draw(show=False)
+
+    assert p.facet.widths == [1, 3]
+    assert p.facet.heights == [2, 1]
 
 
 def test_horizontal_orientation_helper_and_stats_raise():
@@ -411,6 +538,32 @@ def test_horizontal_orientation_helper_and_stats_raise():
         stat_pwc().compute_panel(df, None)
     with pytest.raises(NotImplementedError, match="horizontal orientation"):
         stat_compare_means().compute_panel(df, None)
+
+
+def test_horizontal_orientation_helper_handles_many_discrete_levels():
+    df = pd.DataFrame(
+        {
+            "x": np.linspace(0.1, 10.1, 51),
+            "y": np.arange(1, 52, dtype=float),
+        }
+    )
+
+    assert _common.is_horizontal_orientation(df)
+    with pytest.raises(NotImplementedError, match="horizontal orientation"):
+        stat_pwc().compute_panel(df, None)
+
+
+def test_plot_level_horizontal_orientation_rejects_integer_continuous_x():
+    df = pd.DataFrame(
+        {
+            "value": [1, 2, 3, 4],
+            "group": ["A", "A", "B", "B"],
+        }
+    )
+    p = ggplot(df, aes("value", "group")) + stat_compare_means()
+
+    with pytest.raises(NotImplementedError, match="horizontal orientation"):
+        p.draw(show=False)
 
 
 def test_stat_pwc_paired_requires_complete_wid_alignment():
@@ -449,6 +602,29 @@ def test_stat_pwc_paired_requires_complete_wid_alignment():
     assert result["p"].iloc[0] == pytest.approx(expected.pvalue)
 
 
+def test_plot_level_stat_pwc_preserves_wid_for_paired_tests():
+    df = pd.DataFrame(
+        {
+            "x": [1.0, 1.0, 2.0, 2.0],
+            "y": [1.0, 2.0, 2.0, 4.0],
+            "wid": ["s1", "s2", "s1", "s2"],
+        }
+    )
+    p = ggplot(df, aes("x", "y")) + stat_pwc(
+        method="t.test",
+        paired=True,
+        wid="wid",
+        comparisons=[(1, 2)],
+        p_adjust_method="none",
+    )
+
+    p.draw(show=False)
+    layer_data = p._build_objs.layers[0].data
+    expected = sp_stats.ttest_rel([1.0, 2.0], [2.0, 4.0])
+
+    assert layer_data["p"].iloc[0] == pytest.approx(expected.pvalue)
+
+
 def test_stat_compare_means_uses_wid_for_paired_pairwise_tests():
     df = pd.DataFrame(
         {
@@ -466,6 +642,25 @@ def test_stat_compare_means_uses_wid_for_paired_pairwise_tests():
     expected = sp_stats.ttest_rel([1.0, 2.0], [2.0, 4.0])
 
     assert result["p"].iloc[0] == pytest.approx(expected.pvalue)
+
+
+def test_stat_compare_means_uses_wid_for_global_paired_tests():
+    df = pd.DataFrame(
+        {
+            "x": [1.0, 1.0, 2.0, 2.0],
+            "y": [1.0, 2.0, 2.0, 4.0],
+            "wid": ["s1", "s2", "s1", "s2"],
+        }
+    )
+    result = stat_compare_means(
+        method="t.test",
+        paired=True,
+        wid="wid",
+    ).compute_panel(df, None)
+    expected = sp_stats.ttest_rel([1.0, 2.0], [2.0, 4.0])
+
+    assert result["p"].iloc[0] == pytest.approx(expected.pvalue)
+    assert result["method"].iloc[0] == "Paired t-test"
 
 
 def test_stat_friedman_test_requires_complete_subject_blocks():
@@ -492,6 +687,20 @@ def test_stat_friedman_test_requires_complete_subject_blocks():
     expected = sp_stats.friedmanchisquare([1.0, 2.0], [2.0, 4.0], [3.0, 5.0])
 
     assert result["p"].iloc[0] == pytest.approx(expected.pvalue)
+
+
+def test_stat_friedman_test_rejects_horizontal_orientation():
+    df = pd.DataFrame(
+        {
+            "x": [1.0, 2.0, 3.0, 1.5, 2.5, 3.5],
+            "y": [1.0, 2.0, 3.0, 1.0, 2.0, 3.0],
+            "wid": ["s1", "s1", "s1", "s2", "s2", "s2"],
+        }
+    )
+
+    assert _common.is_horizontal_orientation(df)
+    with pytest.raises(NotImplementedError, match="horizontal orientation"):
+        stat_friedman_test(wid="wid").compute_panel(df, None)
 
 
 def test_stat_pvalue_manual_maps_string_groups_with_x_levels():

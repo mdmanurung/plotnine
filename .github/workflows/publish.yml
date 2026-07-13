@@ -15,9 +15,67 @@ on:
         type: choice
         options:
           - testpypi
-          - pypi
 
 jobs:
+  lint:
+    name: Lint and formatting
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install ruff
+      - name: Lint
+        run: ruff check plotnine_extra tests
+      - name: Check formatting
+        run: ruff format --check plotnine_extra tests
+
+  test:
+    name: Test (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install -e ".[test]"
+      - name: Run tests with coverage
+        run: |
+          python -m pytest tests/ -v \
+            --cov=plotnine_extra \
+            --cov-report=term-missing \
+            --cov-fail-under=50
+
+  notebooks:
+    name: Execute vignette notebooks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+      - name: Install dependencies
+        run: pip install -e ".[doc]"
+      - name: Execute all vignette notebooks
+        run: |
+          jupyter nbconvert --to notebook --execute --inplace \
+            --ExecutePreprocessor.timeout=600 \
+            docs/vignettes/*.ipynb
+
   build:
     name: Build distribution
     runs-on: ubuntu-latest
@@ -72,6 +130,23 @@ jobs:
           assert callable(ggplot)  # noqa: F405
           assert callable(geom_pointdensity)  # noqa: F405
           PY
+      - name: Install sdist and smoke-test exports
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python -m venv /tmp/plotnine-extra-sdist-smoke
+          /tmp/plotnine-extra-sdist-smoke/bin/python -m pip install --upgrade pip
+          /tmp/plotnine-extra-sdist-smoke/bin/python -m pip install dist/*.tar.gz
+          cd /tmp
+          /tmp/plotnine-extra-sdist-smoke/bin/python - <<'PY'
+          from plotnine_extra import *  # noqa: F403
+          import os
+          import plotnine_extra
+
+          assert plotnine_extra.__version__ == os.environ["VERSION"]
+          assert callable(ggplot)  # noqa: F405
+          assert callable(geom_pointdensity)  # noqa: F405
+          PY
       - name: Upload distribution artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -80,7 +155,7 @@ jobs:
 
   publish-testpypi:
     name: Publish to TestPyPI
-    needs: build
+    needs: [lint, test, notebooks, build]
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'testpypi'
     runs-on: ubuntu-latest
     environment:
@@ -101,8 +176,8 @@ jobs:
 
   publish-pypi:
     name: Publish to PyPI
-    needs: build
-    if: (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')) && github.ref == format('refs/tags/v{0}', needs.build.outputs.version)
+    needs: [lint, test, notebooks, build]
+    if: github.event_name == 'release' && github.ref == format('refs/tags/v{0}', needs.build.outputs.version)
     runs-on: ubuntu-latest
     environment:
       name: pypi

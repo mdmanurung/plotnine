@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from typing import Optional, Sequence, Union
 
     from matplotlib.axes import Axes
+    from plotnine._mpl.gridspec import p9GridSpec
     from plotnine.iapi import layout_details
     from plotnine.scales.scale import scale
 
@@ -115,6 +116,8 @@ class facet_manual(facet):
         self.respect = respect
         self.widths = list(widths) if widths is not None else None
         self.heights = list(heights) if heights is not None else None
+        self._panel_widths = self.widths
+        self._panel_heights = self.heights
         self.axes = axes
         self.remove_labels = remove_labels
         self.trim_blank = trim_blank
@@ -144,7 +147,7 @@ class facet_manual(facet):
 
         design = self._design_matrix
         design, kept_rows, kept_cols = self._trim_design(design)
-        self._trim_sizes(kept_rows, kept_cols)
+        self._set_panel_sizes(kept_rows, kept_cols)
 
         # Extract unique panel labels from design, preserving order,
         # excluding '#' / NA (empty cells)
@@ -188,6 +191,12 @@ class facet_manual(facet):
                 raise ValueError(msg)
             row_min, col_min = positions.min(axis=0)
             row_max, col_max = positions.max(axis=0)
+            _check_rectangular_span(
+                label,
+                positions,
+                int(row_max - row_min + 1),
+                int(col_max - col_min + 1),
+            )
             r_pos = int(row_min + 1)
             c_pos = int(col_min + 1)
 
@@ -251,11 +260,25 @@ class facet_manual(facet):
         trimmed = design[np.ix_(kept_rows, kept_cols)]
         return trimmed, kept_rows, kept_cols
 
-    def _trim_sizes(self, rows: list[int], cols: list[int]) -> None:
+    def _set_panel_sizes(self, rows: list[int], cols: list[int]) -> None:
         if self.widths is not None:
-            self.widths = [self.widths[i] for i in cols]
+            _check_size_length(
+                self.widths,
+                len(self._design_matrix[0]),
+                "widths",
+            )
+            self._panel_widths = [self.widths[i] for i in cols]
+        else:
+            self._panel_widths = None
         if self.heights is not None:
-            self.heights = [self.heights[i] for i in rows]
+            _check_size_length(
+                self.heights,
+                len(self._design_matrix),
+                "heights",
+            )
+            self._panel_heights = [self.heights[i] for i in rows]
+        else:
+            self._panel_heights = None
 
     def _apply_axis_flags(self, layout: pd.DataFrame) -> None:
         if self.axes == "all":
@@ -320,6 +343,35 @@ class facet_manual(facet):
         s = strip(self.vars, layout_info, self, ax, "top")
         return Strips([s])
 
+    def _get_panels_gridspec(self) -> "p9GridSpec":
+        from plotnine._mpl.gridspec import p9GridSpec
+
+        ratios = {}
+        if self._panel_widths is not None:
+            ratios["width_ratios"] = self._panel_widths
+        if self._panel_heights is not None:
+            ratios["height_ratios"] = self._panel_heights
+
+        return p9GridSpec(
+            self.nrow,
+            self.ncol,
+            self.figure,
+            nest_into=self.plot._gridspec[0],
+            **ratios,
+        )
+
+    def _make_axes(self) -> list["Axes"]:
+        self._panels_gridspec = self._get_panels_gridspec()
+        axs = []
+        for _, row in self.layout.layout.sort_values("PANEL").iterrows():
+            r0 = int(row["ROW"]) - 1
+            c0 = int(row["COL"]) - 1
+            r1 = r0 + int(row.get("ROWSPAN", 1))
+            c1 = c0 + int(row.get("COLSPAN", 1))
+            spec = self._panels_gridspec[r0:r1, c0:c1]
+            axs.append(self.figure.add_subplot(spec))
+        return axs
+
     def init_scales(
         self,
         layout: pd.DataFrame,
@@ -361,3 +413,30 @@ def _is_empty_design_cell(cell: object) -> bool:
         return True
     text = str(cell)
     return text == "#" or text.upper() == "NA"
+
+
+def _check_size_length(
+    values: Sequence[float],
+    expected: int,
+    name: str,
+) -> None:
+    if len(values) != expected:
+        msg = (
+            f"facet_manual {name} must have length {expected} to match "
+            "the untrimmed design"
+        )
+        raise ValueError(msg)
+
+
+def _check_rectangular_span(
+    label: str,
+    positions: np.ndarray,
+    rowspan: int,
+    colspan: int,
+) -> None:
+    if len(positions) != rowspan * colspan:
+        msg = (
+            "facet_manual repeated design label "
+            f"{label!r} must form a rectangle"
+        )
+        raise ValueError(msg)

@@ -174,8 +174,19 @@ def test_geom_box_constructible():
 
 def test_geom_text_aimed_setup_data():
     g = geom_text_aimed()
-    # Should not raise even though we don't draw
-    assert g is not None
+    d = pd.DataFrame(
+        {
+            "x": [0.0, 0.0],
+            "y": [0.0, 0.0],
+            "xend": [1.0, 1.0],
+            "yend": [0.0, 1.0],
+            "label": ["east", "northeast"],
+        }
+    )
+
+    out = g.setup_data(d)
+
+    assert list(out["angle"]) == pytest.approx([0.0, 45.0])
 
 
 def test_geom_pointpath_constructible():
