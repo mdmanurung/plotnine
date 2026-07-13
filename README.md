@@ -8,18 +8,17 @@ Extension package for [plotnine](https://github.com/has2k1/plotnine) that adds e
 pip install plotnine-extra
 ```
 
-This will automatically install `plotnine` as a dependency.
+This also installs `plotnine` as a dependency.
 
 ## Claude Code Skill
 
-`plotnine-extra` ships an agent skill for Claude Code that teaches the agent how
-to use the package correctly: the extra geoms and stats, ggpubr-style
-statistical annotations, ggh4x-style facets and guides, patchwork-style
-composition, animation helpers, and the common API traps.
+`plotnine-extra` includes a Claude Code skill with package-specific notes for
+the extra geoms and stats, ggpubr-style statistical annotations, ggh4x-style
+facets and guides, patchwork-style composition, and animation helpers.
 
-The skill is bundled with the Python package, but Claude Code does not scan
-installed Python packages for skills. Install it once into your personal Claude
-Code skills directory after installing or upgrading `plotnine-extra`:
+The skill is bundled with the Python package. Claude Code does not scan
+installed Python packages for skills, so install it once after installing or
+upgrading `plotnine-extra`:
 
 ```bash
 plotnine-extra-install-skills --target claude
@@ -27,15 +26,14 @@ plotnine-extra-install-skills --target claude
 
 This copies the skill to `~/.claude/skills/plotnine-extra/`, where it is
 available to Claude Code in every project. Re-run with `--force` after upgrading
-`plotnine-extra` to refresh the installed copy. Once installed, ask Claude Code
-for plotnine-extra tasks such as "add pairwise p-value brackets with
+`plotnine-extra` to refresh the installed copy. Then Claude Code can use the
+plotnine-extra references for tasks such as "add pairwise p-value brackets with
 `stat_pwc`", "use `facet_manual` for this layout", or "compose these plots with
-`plot_layout`", and the skill is consulted automatically.
+`plot_layout`".
 
 The skill is a router (`SKILL.md`) that points to detailed reference files
-loaded on demand, so it adds little context cost until it is used. If you would
-rather not copy files into your home directory, point Claude Code at the bundled
-copy in place:
+loaded when needed. To use the bundled copy without copying files into your home
+directory, point Claude Code at the package path:
 
 ```bash
 export CLAUDE_SKILLS_PATH="$(plotnine-extra-install-skills --print-path)"
