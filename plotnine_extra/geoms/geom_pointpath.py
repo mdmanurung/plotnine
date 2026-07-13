@@ -1,5 +1,5 @@
 """
-``geom_pointpath`` — points connected by a path.
+``geom_pointpath``: points connected by a path.
 
 Port of ``ggh4x::geom_pointpath``. The simplest faithful Python
 implementation is to subclass :class:`geom_point` so that the

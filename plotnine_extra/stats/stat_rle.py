@@ -1,5 +1,5 @@
 """
-``stat_rle`` — run-length encoding of a categorical x series.
+``stat_rle``: run-length encoding of a categorical x series.
 
 Port of ``ggh4x::stat_rle``. Each contiguous run of identical
 ``label`` values becomes a row with ``start``, ``end``,

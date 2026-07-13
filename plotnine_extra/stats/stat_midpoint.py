@@ -1,5 +1,5 @@
 """
-``stat_midpoint`` — per-group midpoint of x / y ranges.
+``stat_midpoint``: per-group midpoint of x / y ranges.
 
 Port of ``ggh4x::stat_midpoint``. Returns a single row per
 group with x at ``(min + max) / 2`` for each axis.

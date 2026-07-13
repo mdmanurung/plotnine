@@ -1,5 +1,5 @@
 """
-``geom_richtext`` – text labels with rich formatting and box
+``geom_richtext``: text labels with rich formatting and box
 styling, ported from R's ``ggtext::geom_richtext``.
 """
 
@@ -52,21 +52,21 @@ def _parse_markdown(text: str) -> tuple[str, dict[str, Any]]:
 
     Supported syntax
     ----------------
-    - ``**bold**`` → fontweight="bold"
-    - ``*italic*`` → fontstyle="italic"
-    - ``<br>`` / ``<br/>`` → newline
-    - ``<sup>…</sup>`` → superscript (via mathtext ``$^{…}$``)
-    - ``<sub>…</sub>`` → subscript  (via mathtext ``$_{…}$``)
+    - ``**bold**``: fontweight="bold"
+    - ``*italic*``: fontstyle="italic"
+    - ``<br>`` / ``<br/>``: newline
+    - ``<sup>...</sup>``: superscript (via mathtext ``$^{...}$``)
+    - ``<sub>...</sub>``: subscript  (via mathtext ``$_{...}$``)
 
     Returns the cleaned text and a dict of matplotlib text
     property overrides (``fontweight``, ``fontstyle``).
     """
     props: dict[str, Any] = {}
 
-    # <br> / <br/> → newline
+    # <br> / <br/>: newline
     text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
 
-    # <sup>…</sup> → mathtext superscript
+    # <sup>...</sup>: mathtext superscript
     text = re.sub(
         r"<sup>(.*?)</sup>",
         r"$^{\1}$",
@@ -74,7 +74,7 @@ def _parse_markdown(text: str) -> tuple[str, dict[str, Any]]:
         flags=re.IGNORECASE,
     )
 
-    # <sub>…</sub> → mathtext subscript
+    # <sub>...</sub>: mathtext subscript
     text = re.sub(
         r"<sub>(.*?)</sub>",
         r"$_{\1}$",
@@ -82,7 +82,7 @@ def _parse_markdown(text: str) -> tuple[str, dict[str, Any]]:
         flags=re.IGNORECASE,
     )
 
-    # **bold** – set weight and strip markers
+    # **bold**: set weight and strip markers
     if re.search(r"\*\*(.+?)\*\*", text):
         # If the entire text is bold, set the property
         m = re.fullmatch(r"\*\*(.+)\*\*", text.strip())
@@ -90,11 +90,11 @@ def _parse_markdown(text: str) -> tuple[str, dict[str, Any]]:
             text = m.group(1)
             props["fontweight"] = "bold"
         else:
-            # Partial bold – can't do inline in plain matplotlib,
+            # Partial bold cannot be drawn inline in plain matplotlib,
             # so just strip the markers
             text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
 
-    # *italic* – same approach
+    # *italic*: same approach
     if re.search(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", text):
         m = re.fullmatch(r"\*(.+)\*", text.strip())
         if m:

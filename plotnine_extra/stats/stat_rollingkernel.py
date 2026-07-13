@@ -1,5 +1,5 @@
 """
-``stat_rollingkernel`` — rolling kernel smoother.
+``stat_rollingkernel``: rolling kernel smoother.
 
 Port of ``ggh4x::stat_rollingkernel``. Computes a kernel-weighted
 moving average of ``y`` along ``x``. Output columns are

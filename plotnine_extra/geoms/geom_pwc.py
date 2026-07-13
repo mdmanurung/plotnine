@@ -1,5 +1,5 @@
 """
-``geom_pwc`` — geom counterpart of :class:`stat_pwc`.
+``geom_pwc``: geom counterpart of :class:`stat_pwc`.
 
 In ggpubr, ``geom_pwc`` and ``stat_pwc`` are interchangeable;
 both attach pairwise comparison brackets to a plot. The geom

@@ -1,5 +1,9 @@
 # ggpubr & ggh4x Porting Plan
 
+Historical note: this file records the initial porting plan. The current API
+reference and vignettes are the authoritative user-facing documentation for
+implemented features.
+
 This document tracks a multi-feature port of ggpubr and ggh4x
 functionality into `plotnine_extra`. It is the design rationale
 behind the new modules added under this branch.
@@ -56,9 +60,8 @@ plotnine_extra/
     scale_manual.py       # scale_x_manual, scale_y_manual
     scale_multi.py        # scale_colour_multi, scale_fill_multi,
                           # scale_listed
-  guides/                 # NEW subpackage (documentation only)
-    __init__.py           # explains why guide_axis_* family is
-                          # not implementable as drop-in classes
+  guides/                 # axis guide helper subpackage
+    __init__.py           # guide_axis_* and guide_stringlegend APIs
   coords/                 # NEW subpackage
     __init__.py
     coord_axes_inside.py  # ggh4x; partial via post-render hook
@@ -66,7 +69,7 @@ plotnine_extra/
 
 ## Implementation phases
 
-### Phase 1 — pure Python (no plotnine internals)
+### Phase 1: pure Python (no plotnine internals)
 Lowest risk, highest immediate value.
 
 - ggpubr summary helpers (`utils/summary.py`)
@@ -75,7 +78,7 @@ Lowest risk, highest immediate value.
 - ggpubr themes additions (`themes/theme_pub.py`)
 - ggpubr styling helpers (`themes/styling.py`)
 
-### Phase 2 — simple plotnine subclasses
+### Phase 2: simple plotnine subclasses
 Subclass `stat`, `geom`, `position`, `scale` directly. Each item
 follows the patterns already established by `stat_central_tendency`,
 `position_beeswarm`, etc.
@@ -86,22 +89,19 @@ follows the patterns already established by `stat_central_tendency`,
 - ggh4x manual scales + multi colour scales (5 items)
 - ggpubr `geom_signif` and `geom_pwc` wrappers
 
-### Phase 3 — partial / documented gaps
+### Phase 3: partial / documented gaps
 Items where plotnine internals do not expose the necessary hook
-points. We provide stubs with clear NotImplementedError or
-limited functionality and document the workaround pattern.
+points. Implementations in this group should document the supported
+behaviour and the plotnine limitation that constrains full parity.
 
 - `coord_axes_inside`: limited implementation via subclassing
   `coord_cartesian` plus a post-build axes-tweak callback.
-- ggh4x `guide_axis_*` family: documented as unsupported in
-  `guides/__init__.py`. The reason is that plotnine 0.15/0.16's
-  `guide_axis` is an empty stub class — tick rendering happens
-  in `plotnine.facets.facet.set_breaks_and_labels` via direct
-  matplotlib `ax.set_xticks(...)` calls. There is no extension
-  point for arbitrary tick guides without monkey-patching that
-  method or post-walking the figure axes.
+- ggh4x `guide_axis_*` family: plotnine 0.15/0.16's `guide_axis`
+  does not expose a drop-in tick-rendering extension point. Current
+  plotnine-extra support uses a Matplotlib-backed axis-guide pass
+  where extended facets can apply it.
 
-### Phase 4 — wiring + tests
+### Phase 4: wiring + tests
 - Append every public symbol to `plotnine_extra/__init__.py`
   `_extra_all`.
 - Update sub-package `__init__.py` re-exports.
@@ -124,16 +124,15 @@ deps (`scipy`, `numpy`, `pandas`, `plotnine`).
 - Smoke tests in `tests/test_ggh4x_layers.py` that build a
   trivial `ggplot` for each new geom / stat / position / scale
   and call `.draw(show=False)` to catch import errors and
-  schema mistakes. No baseline images on first pass — those
-  can be added incrementally as the API stabilises.
+  schema mistakes. Baseline images can be added incrementally
+  as the API stabilises.
 
-## Known limitations (carry-over from R → Python port)
+## Known limitations from the R-to-Python port
 
-1. **`guide_axis_*` family is not portable** without
-   monkey-patching `plotnine.facets.facet.set_breaks_and_labels`.
-   The replacement pattern users should reach for is to subclass
-   `facet_grid2` / `facet_wrap2` and override that method, or to
-   walk the figure axes after `ggplot.draw()`.
+1. **`guide_axis_*` parity is constrained by plotnine internals.**
+   plotnine-extra implements the public helper family through an
+   axis-guide pass used by the extended facets. Exact ggh4x parity
+   remains limited by the hooks exposed by plotnine.
 2. **`scale_x_dendrogram` / `scale_y_dendrogram`** require a
    linkage matrix and a custom axis decoration. They are stubbed
    out for now; the discrete reordering portion is achievable
@@ -144,6 +143,6 @@ deps (`scipy`, `numpy`, `pandas`, `plotnine`).
    layer's `params` in place; it works but is sensitive to
    plotnine internals.
 4. **matplotlib cannot render heterogeneously coloured tick
-   labels** through the standard axis API in a single call,
-   so `guide_axis_colour` would need a per-tick post-render
-   pass. Not implemented.
+   labels** through the standard axis API in a single call. Current
+   support uses a per-tick axis pass where extended facets apply
+   axis-guide specifications.

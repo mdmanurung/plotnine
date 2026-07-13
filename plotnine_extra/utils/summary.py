@@ -89,7 +89,7 @@ def mean_se_(x, mult: float = 1.0) -> dict:
     """
     Return the mean and ``mean ± mult * se``.
 
-    The trailing underscore mirrors the R name to avoid clashing
+    The trailing suffix mirrors the R name to avoid clashing
     with Python's ``mean`` builtins.
     """
     a = _as_array(x)
@@ -180,7 +180,7 @@ def median_hilow_(x, conf_int: float = 0.95) -> dict:
 
     Note: this differs from ``Hmisc::smedian.hilow``, which
     uses an order-statistic interval. ggpubr deliberately uses
-    the simpler percentile form — we follow suit.
+    the simpler percentile form; plotnine-extra follows suit.
     """
     a = _as_array(x)
     n = a.size
@@ -470,7 +470,7 @@ def add_summary(
         linetype=linetype,
         show_legend=show_legend,
     )
-    # ``fill`` / ``shape`` are point aesthetics — only meaningful
+    # ``fill`` / ``shape`` are point aesthetics, only meaningful
     # when the underlying geom actually draws points.
     if geom_name in {"pointrange", "crossbar"}:
         layer_kwargs["fill"] = fill

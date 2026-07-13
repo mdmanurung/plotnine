@@ -1,5 +1,5 @@
 """
-``geom_text_repel`` / ``geom_label_repel`` – text labels with
+``geom_text_repel`` / ``geom_label_repel``: text labels with
 force-directed repulsion to avoid overlaps, inspired by R's
 ``ggrepel`` package.
 """
@@ -54,7 +54,7 @@ def _repel_labels(
         Matplotlib *Axes* (unused; reserved for future
         bounding-box queries).
     fontsize
-        Average font size – used to estimate text extent.
+        Average font size, used to estimate text extent.
     box_padding
         Padding around text boxes as a fraction of the
         axis range.
@@ -73,7 +73,7 @@ def _repel_labels(
         Minimum segment length (fraction of x-range) below
         which no connector line is drawn.
     direction
-        ``"both"``, ``"x"``, or ``"y"`` – restricts which
+        ``"both"``, ``"x"``, or ``"y"``: restricts which
         axes are affected by repulsion.
 
     Returns
@@ -356,7 +356,7 @@ class geom_text_repel(geom_text):
     segment_size : float
         Line width of connector segments.
     direction : str
-        ``"both"``, ``"x"``, or ``"y"`` – restricts which
+        ``"both"``, ``"x"``, or ``"y"``: restricts which
         axes are affected by repulsion.
 
     See Also

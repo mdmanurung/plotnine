@@ -51,7 +51,7 @@ penguins
     flipper_length_mm  float64      Flipper length in millimetres
     body_mass_g        float64      Body mass in grams
     sex                category     Sex (female, male)
-    year               int64        Year of observation (2007–2009)
+    year               int64        Year of observation (2007-2009)
     =================  ===========  ==========================================
 
     **Shape:** 344 rows × 8 columns
@@ -81,10 +81,10 @@ iris
 
     **Source:** Fisher, R. A. (1936). "The use of multiple
     measurements in taxonomic problems". *Annals of Eugenics*,
-    7(2), 179–188.
+    7(2), 179-188.
 
     **References:** Anderson, E. (1935). "The irises of the Gaspe
-    Peninsula". *Bulletin of the American Iris Society*, 59, 2–5.
+    Peninsula". *Bulletin of the American Iris Society*, 59, 2-5.
 
 wine
     UCI Wine recognition data.
@@ -119,7 +119,7 @@ wine
     California, School of Information and Computer Science.
 
 flights
-    Monthly airline passenger numbers 1949–1960.
+    Monthly airline passenger numbers 1949-1960.
 
     ==========  ===========  ==========================================
     Column      Type         Description

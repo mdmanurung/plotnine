@@ -1,5 +1,5 @@
 """
-``geom_rectmargin`` — marginal rectangles for one or both axes.
+``geom_rectmargin``: marginal rectangles for one or both axes.
 
 Port of ``ggh4x::geom_rectmargin``. Adds rectangle annotations
 hugging the x and/or y axis margins of the panel.

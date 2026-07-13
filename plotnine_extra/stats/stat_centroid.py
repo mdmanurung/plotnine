@@ -1,5 +1,5 @@
 """
-``stat_centroid`` — per-group centroid (mean ``x`` and ``y``).
+``stat_centroid``: per-group centroid (mean ``x`` and ``y``).
 
 Direct port of ``ggh4x::stat_centroid``. Outputs a single row
 per group with the average position. Useful for labelling

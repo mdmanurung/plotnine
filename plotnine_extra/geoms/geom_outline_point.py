@@ -1,5 +1,5 @@
 """
-``geom_outline_point`` — points with an outline halo.
+``geom_outline_point``: points with an outline halo.
 
 Port of ``ggh4x::geom_outline_point``. Implemented by drawing
 two stacked point layers: a slightly larger point in the

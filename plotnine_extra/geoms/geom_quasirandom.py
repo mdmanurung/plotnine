@@ -1,5 +1,5 @@
 """
-``geom_quasirandom`` – categorical scatter with quasi-random jitter,
+``geom_quasirandom``: categorical scatter with quasi-random jitter,
 ported from R's ``ggbeeswarm::geom_quasirandom``.
 """
 

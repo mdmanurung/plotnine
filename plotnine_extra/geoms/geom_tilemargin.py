@@ -1,5 +1,5 @@
 """
-``geom_tilemargin`` — marginal tiles.
+``geom_tilemargin``: marginal tiles.
 
 Port of ``ggh4x::geom_tilemargin``. Identical to
 :class:`geom_rectmargin` but uses :class:`geom_tile` semantics

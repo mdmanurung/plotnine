@@ -199,7 +199,7 @@ def show_point_shapes():
     point shapes (mirrors ``ggpubr::show_point_shapes``).
 
     Uses matplotlib's string marker codes rather than R's
-    integer shape codes — integer shapes are not valid
+    integer shape codes. Integer shapes are not valid
     matplotlib markers and would crash the renderer.
     """
     import pandas as pd

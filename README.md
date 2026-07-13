@@ -27,13 +27,13 @@ from plotnine_extra import geom_pointdensity, annotation_stripes
 
 ### Geoms
 
-- **`geom_pointdensity`** — Scatterplot with density estimation at each point
-- **`geom_spoke`** — Line segments parameterised by location, direction, and distance
-- **`annotation_stripes`** — Alternating background stripes, useful with `geom_jitter`
+- **`geom_pointdensity`**: Scatterplot with density estimation at each point
+- **`geom_spoke`**: Line segments parameterised by location, direction, and distance
+- **`annotation_stripes`**: Alternating background stripes, useful with `geom_jitter`
 
 ### Stats
 
-- **`stat_pointdensity`** — Compute density estimation for each point
+- **`stat_pointdensity`**: Compute density estimation for each point
 
 ### Facets, Guides, and Strips
 
@@ -55,22 +55,22 @@ from plotnine_extra import facet_wrap2, guide_axis_manual
 )
 ```
 
-- **`facet_grid2`**, **`facet_wrap2`**, **`facet_manual`** — Extended facet layouts with inner-axis and per-panel-scale support
-- **`scale_x_facet`**, **`scale_y_facet`** — Selector-based per-panel position scales
-- **`guide_axis_manual`**, **`guide_axis_colour`**, **`guide_axis_minor`**, **`guide_axis_logticks`**, **`guide_axis_truncated`**, **`guide_axis_scalebar`**, **`guide_axis_nested`**, **`guide_dendro`** — Matplotlib-backed axis guides for the extended facets
-- **`guide_stringlegend`** — Text-only color/fill legend
-- **`strip_nested`**, **`strip_themed`**, **`strip_split`**, **`strip_tag`** — Constructor-compatible strip descriptors; direct strip drawing is partial where plotnine does not expose the required strip-side hooks
+- **`facet_grid2`**, **`facet_wrap2`**, **`facet_manual`**: Extended facet layouts with inner-axis and per-panel-scale support
+- **`scale_x_facet`**, **`scale_y_facet`**: Selector-based per-panel position scales
+- **`guide_axis_manual`**, **`guide_axis_colour`**, **`guide_axis_minor`**, **`guide_axis_logticks`**, **`guide_axis_truncated`**, **`guide_axis_scalebar`**, **`guide_axis_nested`**, **`guide_dendro`**: Matplotlib-backed axis guides for the extended facets
+- **`guide_stringlegend`**: Text-only color/fill legend
+- **`strip_nested`**, **`strip_themed`**, **`strip_split`**, **`strip_tag`**: Constructor-compatible strip descriptors; direct strip drawing is partial where plotnine does not expose the required strip-side hooks
 
 ### Plot Composition
 
 Compose multiple plots using operators:
 
-- `|` — Arrange plots side by side (`Beside`)
-- `/` — Arrange plots vertically (`Stack`)
-- `+` — Arrange plots in a 2D grid (`Wrap`)
-- `-` — Arrange plots side by side at the same nesting level
-- `&` — Add to all plots in a composition
-- `*` — Add to top-level plots only
+- `|`: Arrange plots side by side (`Beside`)
+- `/`: Arrange plots vertically (`Stack`)
+- `+`: Arrange plots in a 2D grid (`Wrap`)
+- `-`: Arrange plots side by side at the same nesting level
+- `&`: Add to all plots in a composition
+- `*`: Add to top-level plots only
 
 ```python
 from plotnine import ggplot, aes, geom_point
@@ -94,11 +94,11 @@ p1 / p2
 ```
 
 Additional composition classes and functions:
-- **`Compose`** — Base class for compositions
-- **`Beside`**, **`Stack`**, **`Wrap`** — Composition subclasses
-- **`plot_layout`** — Customise composition layout (nrow, ncol, widths, heights)
-- **`plot_annotation`** — Add title, subtitle, caption, footer to compositions
-- **`plot_spacer`** — Add blank space in compositions
+- **`Compose`**: Base class for compositions
+- **`Beside`**, **`Stack`**, **`Wrap`**: Composition subclasses
+- **`plot_layout`**: Customise composition layout (nrow, ncol, widths, heights)
+- **`plot_annotation`**: Add title, subtitle, caption, footer to compositions
+- **`plot_spacer`**: Add blank space in compositions
 
 ### Animation
 
@@ -132,7 +132,7 @@ pip install -e ".[all]"
 
 ## Publishing to PyPI
 
-This project uses [trusted publishing](https://docs.pypi.org/trusted-publishers/) (OIDC) via GitHub Actions — no API tokens needed.
+This project uses [trusted publishing](https://docs.pypi.org/trusted-publishers/) (OIDC) via GitHub Actions. No API tokens are needed.
 
 ### One-time setup
 
@@ -154,7 +154,7 @@ This project uses [trusted publishing](https://docs.pypi.org/trusted-publishers/
 ### How to publish
 
 - **To TestPyPI:** Go to Actions → "Publish to PyPI / TestPyPI" → Run workflow → select `testpypi`
-- **To PyPI:** Create a GitHub Release tagged exactly as `vX.Y.Z` for the version in `pyproject.toml` (for this release candidate, `v0.3.1`) — publishing happens automatically after artifact validation
+- **To PyPI:** Create a GitHub Release tagged exactly as `vX.Y.Z` for the version in `pyproject.toml` (for this release candidate, `v0.3.1`). Publishing starts after artifact validation.
 
 ### Version bumping
 

@@ -48,10 +48,10 @@ class position_beeswarm(position):
         - ``"hex"``: hexagonal grid.
         - ``"square"``: regular square grid.
     cex :
-        Scaling factor for point spacing (1–3 recommended).
+        Scaling factor for point spacing (1-3 recommended).
     side :
-        ``0`` – both sides (default), ``1`` – right/up only,
-        ``-1`` – left/down only.
+        ``0``: both sides (default), ``1``: right/up only,
+        ``-1``: left/down only.
     priority :
         Order in which points are placed:
         ``"ascending"`` (default), ``"descending"``,

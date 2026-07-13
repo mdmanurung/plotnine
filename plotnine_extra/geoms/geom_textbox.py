@@ -1,5 +1,5 @@
 """
-``geom_textbox`` – text box with word wrapping,
+``geom_textbox``: text box with word wrapping,
 ported from R's ``ggtext::geom_textbox``.
 """
 

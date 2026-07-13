@@ -25,8 +25,8 @@ class stat_regline_equation(stat):
     formula : str, default="y ~ x"
         Regression formula. Supported forms:
 
-        - ``"y ~ x"`` — simple linear regression
-        - ``"y ~ poly(x, n)"`` — polynomial of degree n
+        - ``"y ~ x"``: simple linear regression
+        - ``"y ~ poly(x, n)"``: polynomial of degree n
     label_x_npc : float or str, default="left"
         Normalized x position for the label.
     label_y_npc : float or str, default="top"

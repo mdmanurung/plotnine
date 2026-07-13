@@ -1,5 +1,5 @@
 """
-``stat_compare`` — group-mean comparison stat ported from
+``stat_compare``: group-mean comparison stat ported from
 `HMU-WH/ggcompare <https://github.com/HMU-WH/ggcompare>`_.
 
 Improves on ``ggsignif::geom_signif`` and
@@ -320,7 +320,7 @@ class stat_compare(stat):
         keep = ~(out["p"].isna() & out["q"].isna() & out["method"].isna())
         out = out.loc[keep].reset_index(drop=True)
 
-        # ``geom_bracket`` consumes y, not ymin/ymax — set y to
+        # ``geom_bracket`` consumes y, not ymin/ymax. Set y to
         # the bracket top (the R version uses ymax).
         if "ymax" in out.columns:
             out["y"] = out["ymax"]

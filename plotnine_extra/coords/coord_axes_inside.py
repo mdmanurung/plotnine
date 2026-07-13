@@ -1,5 +1,5 @@
 """
-``coord_axes_inside`` — draw the axes inside the panel.
+``coord_axes_inside``: draw the axes inside the panel.
 
 Port of ``ggh4x::coord_axes_inside``. The R version repositions
 the axis lines to a chosen origin inside the panel area; the

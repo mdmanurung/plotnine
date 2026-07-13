@@ -15,20 +15,20 @@ component shipped by plotnine-extra.
 Extra Components
 ----------------
 
-**Geoms** – ``geom_pointdensity``, ``geom_spoke``, ``geom_bracket``,
+**Geoms**: ``geom_pointdensity``, ``geom_spoke``, ``geom_bracket``,
 ``annotation_stripes``
 
-**Stats** – ``stat_pointdensity``, ``stat_mean``, ``stat_chull``,
+**Stats**: ``stat_pointdensity``, ``stat_mean``, ``stat_chull``,
 ``stat_stars``, ``stat_central_tendency``, ``stat_conf_ellipse``,
 ``stat_cor``, ``stat_regline_equation``,
 ``stat_overlay_normal_density``, ``stat_compare_means``,
 ``stat_anova_test``, ``stat_kruskal_test``, ``stat_welch_anova_test``,
 ``stat_friedman_test``, ``stat_pvalue_manual``, ``stat_pwc``
 
-**Composition** – ``Compose``, ``Beside``, ``Stack``, ``Wrap``,
+**Composition**: ``Compose``, ``Beside``, ``Stack``, ``Wrap``,
 ``plot_layout``, ``plot_annotation``, ``plot_spacer``
 
-**Animation** – ``PlotnineAnimation``
+**Animation**: ``PlotnineAnimation``
 
 
 .. toctree::

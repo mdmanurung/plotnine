@@ -1,5 +1,5 @@
 """
-``stat_funxy`` — apply arbitrary summary functions to ``x`` and
+``stat_funxy``: apply arbitrary summary functions to ``x`` and
 ``y`` separately. Port of ``ggh4x::stat_funxy``.
 """
 

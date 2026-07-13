@@ -28,7 +28,7 @@ class strip_tag(Strip):
     Parameters
     ----------
     tag_pool : list of str, optional
-        Labels to use. Defaults to uppercase A–Z.
+        Labels to use. Defaults to uppercase A-Z.
     position : str
         Where within the panel to place the tag. One of
         "topleft", "top", "topright", "left", "right",

@@ -1,5 +1,5 @@
 """
-``geom_beeswarm`` – categorical scatter using the beeswarm algorithm,
+``geom_beeswarm``: categorical scatter using the beeswarm algorithm,
 ported from R's ``ggbeeswarm::geom_beeswarm``.
 """
 
@@ -32,7 +32,7 @@ class geom_beeswarm(_PositionGeomMixin, geom_point):
         ``"compactswarm"``, ``"center"`` / ``"centre"``,
         ``"hex"``, or ``"square"``.
     cex : float
-        Scaling factor for point spacing (1–3 recommended).
+        Scaling factor for point spacing (1-3 recommended).
     side : int
         ``0`` both sides (default), ``1`` right/up only,
         ``-1`` left/down only.

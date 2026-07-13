@@ -1,5 +1,5 @@
 """
-``position_disjoint_ranges`` — stack overlapping intervals into
+``position_disjoint_ranges``: stack overlapping intervals into
 disjoint rows. Port of ``ggh4x::position_disjoint_ranges``.
 
 Each layer with ``xmin`` / ``xmax`` aesthetics gets reassigned a

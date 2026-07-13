@@ -1,5 +1,5 @@
 """
-``geom_text_aimed`` — text rotated to follow a direction.
+``geom_text_aimed``: text rotated to follow a direction.
 
 Port of ``ggh4x::geom_text_aimed``. A subclass of
 :class:`geom_text` that lets users supply an explicit

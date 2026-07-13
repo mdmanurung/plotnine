@@ -1,5 +1,5 @@
 """
-``stat_difference`` — signed-difference ribbon between two
+``stat_difference``: signed-difference ribbon between two
 y-series, ported from ``ggh4x::stat_difference``.
 
 Given an ``x`` aesthetic plus ``ymin`` and ``ymax``, this stat

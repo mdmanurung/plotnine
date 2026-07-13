@@ -1,11 +1,11 @@
 """
-``geom_box`` — rectangular highlight box.
+``geom_box``: rectangular highlight box.
 
 Port of ``ggh4x::geom_box``. A subclass of :class:`geom_rect`
 that simply renames the convenience parameters so that
 ``geom_box(xmin=, xmax=, ymin=, ymax=, ...)`` works as in R.
 This geom does not draw the standard ggplot2 box-and-whisker
-shape — that's :func:`plotnine.geom_boxplot`.
+shape; use :func:`plotnine.geom_boxplot` for that.
 """
 
 from __future__ import annotations

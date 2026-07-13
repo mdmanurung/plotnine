@@ -26,9 +26,9 @@ class geom_signif(geom_bracket):
 
     Parameters
     ----------
-    Same as :class:`geom_bracket`. In addition, ``y_position``
-    and ``annotations`` are accepted as aliases for ``y`` and
-    ``label`` respectively to ease migration from ggsignif.
+    Same as :class:`geom_bracket`. ``y_position`` and
+    ``annotations`` are accepted as aliases for ``y`` and
+    ``label`` to ease migration from ggsignif.
     """
 
     def __init__(

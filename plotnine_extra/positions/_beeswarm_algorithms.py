@@ -127,7 +127,7 @@ def offset_quasirandom(
         rng = np.random.default_rng()
         jitter = rng.uniform(-0.5, 0.5, size=n)
     else:
-        # quasirandom (default) – van der Corput sequence
+        # quasirandom (default): van der Corput sequence
         vdc = van_der_corput(n)
         jitter = vdc - 0.5  # centre around 0
 
@@ -171,8 +171,8 @@ def offset_beeswarm(
     cex
         Scaling factor for point spacing (higher = more spread).
     side
-        ``0`` – both sides, ``1`` – right/up only,
-        ``-1`` – left/down only.
+        ``0``: both sides, ``1``: right/up only,
+        ``-1``: left/down only.
     priority
         Order in which points are placed: ``"ascending"`` (default),
         ``"descending"``, ``"density"``, ``"random"``, ``"none"``.
@@ -387,7 +387,7 @@ def _grid(
     val_range = val_max - val_min
 
     if val_range == 0:
-        # All same value – arrange in a line
+        # All same value: arrange in a line
         offsets = np.arange(n, dtype=np.float64) - (n - 1) / 2.0
         offsets *= point_size
         return _apply_side(offsets, side)
@@ -450,11 +450,11 @@ def corral_points(
     offsets
         Horizontal offsets.
     method
-        ``"none"`` – no correction,
-        ``"gutter"`` – clamp to boundary,
-        ``"wrap"`` – periodic wrap,
-        ``"random"`` – random within boundary,
-        ``"omit"`` – set to NaN.
+        ``"none"``: no correction,
+        ``"gutter"``: clamp to boundary,
+        ``"wrap"``: periodic wrap,
+        ``"random"``: random within boundary,
+        ``"omit"``: set to NaN.
     width
         Half-width of the corral region.
     """

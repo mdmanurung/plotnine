@@ -1,5 +1,5 @@
 """
-``stat_theodensity`` — theoretical density curve.
+``stat_theodensity``: theoretical density curve.
 
 Port of ``ggh4x::stat_theodensity``. Fits a parametric
 distribution to the data via maximum likelihood and returns the
