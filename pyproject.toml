@@ -28,6 +28,9 @@ dependencies = [
 ]
 requires-python = ">=3.10"
 
+[project.scripts]
+plotnine-extra-install-skills = "plotnine_extra._skills.install:main"
+
 [project.optional-dependencies]
 all = [
     "plotnine-extra[lint]",
@@ -83,6 +86,10 @@ include = ["plotnine_extra*"]
 
 [tool.setuptools.package-data]
 "plotnine_extra.data" = ["*.csv"]
+"plotnine_extra._skills" = [
+    "data/SKILL.md",
+    "data/references/*.md",
+]
 
 ########## Tool - Pytest ##########
 [tool.pytest.ini_options]

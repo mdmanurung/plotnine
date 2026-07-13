@@ -10,6 +10,30 @@ pip install plotnine-extra
 
 This will automatically install `plotnine` as a dependency.
 
+## Claude Code and Codex Skills
+
+`plotnine-extra` ships a bundled agent skill for Claude Code and Codex. The
+skill gives coding agents package-specific guidance for facets, guides, stats,
+composition, animation, and common API traps.
+
+Python installers do not let packages safely write into agent configuration
+directories during `pip install`, so install the skill once after installing or
+upgrading the package:
+
+```bash
+plotnine-extra-install-skills
+```
+
+By default this installs to both `~/.claude/skills/plotnine-extra/` and
+`~/.codex/skills/plotnine-extra/`. Use `--target claude` or `--target codex` to
+install for one agent, and `--force` after upgrading to refresh an existing
+copy. To point an agent at the bundled copy without copying it, inspect the path
+with:
+
+```bash
+plotnine-extra-install-skills --print-path
+```
+
 ## Usage
 
 ```python
