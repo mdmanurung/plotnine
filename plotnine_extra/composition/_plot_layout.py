@@ -52,6 +52,17 @@ class plot_layout(ComposeAddable):
         """
         Add plot layout to composition
         """
+        from plotnine import ggplot as _ggplot
+
+        if isinstance(cmp, _ggplot):
+            # plot_layout can only be applied to a plotnine_extra Compose,
+            # not to an individual ggplot. This can happen when plotnine's
+            # native composition operators (|, /, -) are used, which create
+            # plotnine's built-in Beside/Stack objects whose __add__ method
+            # passes unrecognised objects down to the last ggplot. In that
+            # case, silently return the ggplot unchanged so that the native
+            # composition can still display without crashing.
+            return cmp  # type: ignore[return-value]
         cmp.layout = self
         return cmp
 
