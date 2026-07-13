@@ -14,6 +14,7 @@ from .stat_compare_means import stat_compare_means
 from .stat_conf_ellipse import stat_conf_ellipse
 from .stat_cor import stat_cor
 from .stat_difference import stat_difference
+from .stat_fivenumber import stat_fivenumber
 from .stat_friedman_test import stat_friedman_test
 from .stat_funxy import stat_funxy
 from .stat_kruskal_test import stat_kruskal_test
@@ -46,6 +47,7 @@ __all__ = (
     "stat_cor",
     "stat_difference",
     "stat_friedman_test",
+    "stat_fivenumber",
     "stat_funxy",
     "stat_kruskal_test",
     "stat_mean",

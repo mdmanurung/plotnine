@@ -3,7 +3,16 @@ from .conveniences import (
     distribute_args,
     elem_list_rect,
     elem_list_text,
+    help_secondary,
     weave_factors,
+)
+from .ggpubr import (
+    annotate_figure,
+    compare_means,
+    get_breaks,
+    get_legend,
+    ggarrange,
+    stat_bracket,
 )
 from .summary import (
     add_summary,
@@ -22,12 +31,18 @@ from .summary import (
 
 __all__ = (
     "add_summary",
+    "annotate_figure",
     "center_limits",
+    "compare_means",
     "desc_statby",
     "distribute_args",
     "elem_list_rect",
     "elem_list_text",
+    "get_breaks",
+    "get_legend",
     "get_summary_stats",
+    "ggarrange",
+    "help_secondary",
     "mean_ci",
     "mean_range",
     "mean_sd",
@@ -37,5 +52,6 @@ __all__ = (
     "median_mad",
     "median_q1q3",
     "median_range",
+    "stat_bracket",
     "weave_factors",
 )

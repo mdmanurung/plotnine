@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from ._ggsci import BREWER_PALETTES, GGSCI_PALETTES
+from ._ggthemes import GGTHEMES_PALETTES, ggthemes_palette
 
 if TYPE_CHECKING:
     from typing import Sequence
@@ -57,6 +58,8 @@ def _resolve_palette(
         return GGSCI_PALETTES[name]
     if name in BREWER_PALETTES:
         return BREWER_PALETTES[name]
+    if name in GGTHEMES_PALETTES:
+        return tuple(ggthemes_palette(name))
     if name.lower() in {"grey", "gray"}:
         return _DEFAULT_GREY_GRADIENT
     if name.lower() == "viridis":

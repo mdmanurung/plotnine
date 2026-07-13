@@ -7,8 +7,10 @@ from .geom_half_violin import geom_half_violin
 from .geom_outline_point import geom_outline_point
 from .geom_pointdensity import geom_pointdensity
 from .geom_pointpath import geom_pointpath
+from .geom_polygonraster import geom_polygonraster
 from .geom_pwc import geom_pwc
 from .geom_quasirandom import geom_quasirandom
+from .geom_rangeframe import geom_rangeframe
 from .geom_rectmargin import geom_rectmargin
 from .geom_richtext import geom_richtext
 from .geom_signif import geom_signif
@@ -20,6 +22,7 @@ from .geom_text_repel import (
 )
 from .geom_textbox import geom_textbox
 from .geom_tilemargin import geom_tilemargin
+from .geom_tufteboxplot import geom_tufteboxplot
 
 __all__ = (
     "annotation_stripes",
@@ -32,8 +35,10 @@ __all__ = (
     "geom_outline_point",
     "geom_pointdensity",
     "geom_pointpath",
+    "geom_polygonraster",
     "geom_pwc",
     "geom_quasirandom",
+    "geom_rangeframe",
     "geom_rectmargin",
     "geom_richtext",
     "geom_signif",
@@ -42,4 +47,5 @@ __all__ = (
     "geom_text_repel",
     "geom_textbox",
     "geom_tilemargin",
+    "geom_tufteboxplot",
 )

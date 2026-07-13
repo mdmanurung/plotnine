@@ -92,12 +92,15 @@ from .composition import (
 )
 from .coords import apply_axes_inside, coord_axes_inside
 from .facets import (  # noqa: E402
+    at_panel,
     facet_grid2,
     facet_manual,
     facet_nested,
     facet_nested_wrap,
     facet_wrap2,
     facetted_pos_scales,
+    force_panelsizes,
+    ggsubset,
     scale_x_facet,
     scale_y_facet,
 )
@@ -106,6 +109,7 @@ from .facets.strips import (  # noqa: E402
     strip_split,
     strip_tag,
     strip_themed,
+    strip_vanilla,
 )
 from .geoms import (
     annotation_stripes,
@@ -118,8 +122,10 @@ from .geoms import (
     geom_outline_point,
     geom_pointdensity,
     geom_pointpath,
+    geom_polygonraster,
     geom_pwc,
     geom_quasirandom,
+    geom_rangeframe,
     geom_rectmargin,
     geom_richtext,
     geom_signif,
@@ -128,6 +134,7 @@ from .geoms import (
     geom_text_repel,
     geom_textbox,
     geom_tilemargin,
+    geom_tufteboxplot,
 )
 from .guides import (
     guide_axis_color,
@@ -141,6 +148,8 @@ from .guides import (
     guide_dendro,
     guide_stringlegend,
 )
+from .palettes import *  # noqa: F401, F403, E402
+from .palettes import __all__ as _palettes_all
 from .palettes import (
     change_palette,
     color_palette,
@@ -152,12 +161,16 @@ from .palettes import (
     show_line_types,
     show_point_shapes,
 )
+from .plots import *  # noqa: F401, F403, E402
+from .plots import __all__ as _plots_all
 from .positions import (
     position_beeswarm,
     position_disjoint_ranges,
     position_lineartrans,
     position_quasirandom,
 )
+from .scales import *  # noqa: F401, F403, E402
+from .scales import __all__ as _scales_all
 from .scales import (
     scale_color_multi,
     scale_colour_multi,
@@ -181,6 +194,7 @@ from .stats import (
     stat_conf_ellipse,
     stat_cor,
     stat_difference,
+    stat_fivenumber,
     stat_friedman_test,
     stat_funxy,
     stat_kruskal_test,
@@ -214,15 +228,22 @@ from .themes import (
     theme_classic2,
     theme_clean,
     theme_cleveland,
+    theme_economist,
+    theme_few,
+    theme_fivethirtyeight,
     theme_nature,
     theme_poster,
     theme_pubclean,
     theme_pubr,
     theme_scientific,
     theme_transparent,
+    theme_tufte,
+    theme_wsj,
     xscale,
     yscale,
 )
+from .utils import *  # noqa: F401, F403, E402
+from .utils import __all__ as _utils_all
 from .utils import (
     add_summary,
     desc_statby,
@@ -253,8 +274,10 @@ _extra_all = (
     "geom_outline_point",
     "geom_pointdensity",
     "geom_pointpath",
+    "geom_polygonraster",
     "geom_pwc",
     "geom_quasirandom",
+    "geom_rangeframe",
     "geom_rectmargin",
     "geom_richtext",
     "geom_signif",
@@ -263,6 +286,7 @@ _extra_all = (
     "geom_text_repel",
     "geom_textbox",
     "geom_tilemargin",
+    "geom_tufteboxplot",
     # Positions
     "position_beeswarm",
     "position_disjoint_ranges",
@@ -276,12 +300,17 @@ _extra_all = (
     "theme_classic2",
     "theme_clean",
     "theme_cleveland",
+    "theme_economist",
+    "theme_few",
+    "theme_fivethirtyeight",
     "theme_nature",
     "theme_poster",
     "theme_pubclean",
     "theme_pubr",
     "theme_scientific",
     "theme_transparent",
+    "theme_tufte",
+    "theme_wsj",
     # Theme styling helpers
     "bgcolor",
     "border",
@@ -296,6 +325,7 @@ _extra_all = (
     "xscale",
     "yscale",
     # Palettes
+    *_palettes_all,
     "change_palette",
     "color_palette",
     "fill_palette",
@@ -306,6 +336,7 @@ _extra_all = (
     "show_line_types",
     "show_point_shapes",
     # Scales
+    *_scales_all,
     "scale_color_multi",
     "scale_colour_multi",
     "scale_fill_multi",
@@ -324,18 +355,22 @@ _extra_all = (
     "guide_dendro",
     "guide_stringlegend",
     # Facets and strips
+    "at_panel",
     "facet_grid2",
     "facet_manual",
     "facet_nested",
     "facet_nested_wrap",
     "facet_wrap2",
     "facetted_pos_scales",
+    "force_panelsizes",
+    "ggsubset",
     "scale_x_facet",
     "scale_y_facet",
     "strip_nested",
     "strip_split",
     "strip_tag",
     "strip_themed",
+    "strip_vanilla",
     # Coords
     "coord_axes_inside",
     "apply_axes_inside",
@@ -350,6 +385,7 @@ _extra_all = (
     "stat_cor",
     "stat_difference",
     "stat_friedman_test",
+    "stat_fivenumber",
     "stat_funxy",
     "stat_kruskal_test",
     "stat_mean",
@@ -371,6 +407,7 @@ _extra_all = (
     "ggadjust_pvalue",
     "list_p_format_styles",
     # Summary helpers
+    *_utils_all,
     "add_summary",
     "desc_statby",
     "get_summary_stats",
@@ -383,6 +420,8 @@ _extra_all = (
     "median_mad",
     "median_q1q3",
     "median_range",
+    # High-level plot constructors
+    *_plots_all,
     # Composition
     "Compose",
     "Beside",

@@ -8,6 +8,7 @@ weaving categorical factors, and building symmetric limits.
 from __future__ import annotations
 
 import inspect
+from dataclasses import dataclass
 from itertools import product
 from typing import TYPE_CHECKING
 
@@ -228,6 +229,99 @@ def center_limits(
     return _center
 
 
+@dataclass
+class SecondaryAxisHelper:
+    """
+    Projection helper returned by :func:`help_secondary`.
+    """
+
+    slope: float
+    intercept: float
+    name: str | None = None
+    method: str = "range"
+
+    def proj(self, values: Any) -> np.ndarray:
+        """Project secondary-data values into primary-axis coordinates."""
+        return np.asarray(values, dtype=float) * self.slope + self.intercept
+
+    def inverse(self, values: Any) -> np.ndarray:
+        """Map projected primary-axis values back to secondary values."""
+        return (np.asarray(values, dtype=float) - self.intercept) / self.slope
+
+    def __call__(self, values: Any) -> np.ndarray:
+        return self.proj(values)
+
+    def as_plotnine_axis(self) -> None:
+        """
+        Raise a clear error for unsupported direct secondary-axis use.
+        """
+        raise NotImplementedError(
+            "plotnine does not currently expose ggplot2-style secondary axes; "
+            "use help_secondary(...).proj(...) to project secondary data"
+        )
+
+
+def help_secondary(
+    data: pd.DataFrame | None = None,
+    primary: Any = (0, 1),
+    secondary: Any = (0, 1),
+    method: str = "range",
+    na_rm: bool = True,
+    name: str | None = None,
+    **kwargs: Any,
+) -> SecondaryAxisHelper:
+    """
+    Build a projection helper for secondary data.
+
+    Parameters
+    ----------
+    data : pandas.DataFrame, optional
+        Data used to resolve string column names.
+    primary, secondary : str or array-like
+        Primary and secondary values used to estimate the projection.
+    method : {"range", "max", "fit", "sortfit", "ccf"}
+        Projection method. ``"ccf"`` uses a simple lag search before fitting.
+    na_rm : bool
+        Drop incomplete observations before fitting.
+    name : str, optional
+        Label stored on the returned helper.
+    **kwargs
+        Accepted for API compatibility and stored nowhere.
+
+    Returns
+    -------
+    SecondaryAxisHelper
+        Helper with ``proj`` and ``inverse`` methods.
+    """
+    del kwargs
+    primary_values = _resolve_secondary_values(data, primary)
+    secondary_values = _resolve_secondary_values(data, secondary)
+    p, s = _align_secondary_values(primary_values, secondary_values, na_rm)
+
+    if method == "range":
+        slope, intercept = _range_projection(p, s)
+    elif method == "max":
+        slope, intercept = _max_projection(p, s)
+    elif method == "fit":
+        slope, intercept = _fit_projection(p, s)
+    elif method == "sortfit":
+        slope, intercept = _fit_projection(np.sort(p), np.sort(s))
+    elif method == "ccf":
+        slope, intercept = _fit_projection(*_ccf_aligned(p, s))
+    else:
+        msg = (
+            "method must be one of 'range', 'max', 'fit', 'sortfit', or 'ccf'"
+        )
+        raise ValueError(msg)
+
+    return SecondaryAxisHelper(
+        slope=float(slope),
+        intercept=float(intercept),
+        name=name,
+        method=method,
+    )
+
+
 # ------------------------------------------------------------------
 # Internal helpers
 # ------------------------------------------------------------------
@@ -248,3 +342,83 @@ def _has_length(v: Any) -> bool:
     if isinstance(v, (list, tuple)):
         return len(v) > 0
     return True
+
+
+def _resolve_secondary_values(
+    data: pd.DataFrame | None,
+    values: Any,
+) -> np.ndarray:
+    if isinstance(values, str):
+        if data is None:
+            msg = "String primary/secondary values require a data frame"
+            raise ValueError(msg)
+        return np.asarray(data[values], dtype=float)
+    return np.asarray(values, dtype=float)
+
+
+def _align_secondary_values(
+    primary: np.ndarray,
+    secondary: np.ndarray,
+    na_rm: bool,
+) -> tuple[np.ndarray, np.ndarray]:
+    if primary.shape[0] != secondary.shape[0]:
+        msg = "primary and secondary must have the same length"
+        raise ValueError(msg)
+    mask = ~(np.isnan(primary) | np.isnan(secondary))
+    if not mask.all():
+        if not na_rm:
+            msg = "primary and secondary contain missing values"
+            raise ValueError(msg)
+        primary = primary[mask]
+        secondary = secondary[mask]
+    if len(primary) < 2:
+        msg = "help_secondary requires at least two complete observations"
+        raise ValueError(msg)
+    return primary, secondary
+
+
+def _range_projection(
+    primary: np.ndarray,
+    secondary: np.ndarray,
+) -> tuple[float, float]:
+    pmin, pmax = np.min(primary), np.max(primary)
+    smin, smax = np.min(secondary), np.max(secondary)
+    if smax == smin:
+        msg = "secondary range must be non-zero"
+        raise ValueError(msg)
+    slope = (pmax - pmin) / (smax - smin)
+    return slope, pmin - slope * smin
+
+
+def _max_projection(
+    primary: np.ndarray,
+    secondary: np.ndarray,
+) -> tuple[float, float]:
+    smax = np.max(np.abs(secondary))
+    if smax == 0:
+        msg = "secondary maximum must be non-zero"
+        raise ValueError(msg)
+    return np.max(np.abs(primary)) / smax, 0.0
+
+
+def _fit_projection(
+    primary: np.ndarray,
+    secondary: np.ndarray,
+) -> tuple[float, float]:
+    slope, intercept = np.polyfit(secondary, primary, 1)
+    return float(slope), float(intercept)
+
+
+def _ccf_aligned(
+    primary: np.ndarray,
+    secondary: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    primary_centered = primary - np.mean(primary)
+    secondary_centered = secondary - np.mean(secondary)
+    corr = np.correlate(primary_centered, secondary_centered, mode="full")
+    lag = int(np.argmax(corr) - (len(secondary) - 1))
+    if lag > 0:
+        return primary[lag:], secondary[:-lag]
+    if lag < 0:
+        return primary[:lag], secondary[-lag:]
+    return primary, secondary

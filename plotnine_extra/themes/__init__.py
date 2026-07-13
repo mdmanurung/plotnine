@@ -60,6 +60,21 @@ from .styling import (
 from .styling import (
     yscale as yscale,
 )
+from .theme_ggthemes import (
+    theme_economist as theme_economist,
+)
+from .theme_ggthemes import (
+    theme_few as theme_few,
+)
+from .theme_ggthemes import (
+    theme_fivethirtyeight as theme_fivethirtyeight,
+)
+from .theme_ggthemes import (
+    theme_tufte as theme_tufte,
+)
+from .theme_ggthemes import (
+    theme_wsj as theme_wsj,
+)
 from .theme_pub import (  # noqa: E402
     clean_theme as clean_theme,
 )
