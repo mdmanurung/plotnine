@@ -1,10 +1,13 @@
 Vignettes
 =========
 
-Worked examples showing how to use plotnine-extra.
+Worked examples showing how to use plotnine-extra's main feature areas.
 
 .. toctree::
    :maxdepth: 1
-   :glob:
 
-   *
+   basic-barplot
+   facets-and-guides
+   beeswarm-plots
+   stat-compare
+   stat-pwc
