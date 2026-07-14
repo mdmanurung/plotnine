@@ -472,9 +472,12 @@ class Compose:
         self.figure = figure
         self._gridspec = container_gs
         self.layout._setup(self)
-        self._sub_gridspec = p9GridSpec.from_layout(
-            self.layout,
-            figure=figure,
+        self._sub_gridspec = p9GridSpec(
+            self.layout.nrow,
+            self.layout.ncol,
+            figure,
+            width_ratios=self.layout.widths,
+            height_ratios=self.layout.heights,
             nest_into=container_gs[0],
         )
 
@@ -546,12 +549,17 @@ class Compose:
         # (outside _draw).
         with plot_composition_context(self, show):
             figure = _draw(self)
-            self.theme._setup(
-                self.figure,
-                None,
-                self.annotation.title,
-                self.annotation.subtitle,
+            from types import SimpleNamespace
+
+            _mock_plot = SimpleNamespace(
+                figure=self.figure,
+                axs=[],
+                labels={
+                    "title": self.annotation.title or "",
+                    "subtitle": self.annotation.subtitle or "",
+                },
             )
+            self.theme.setup(_mock_plot)
             self._draw_annotation()
             self._draw_composition_background()
             self.theme.apply()
