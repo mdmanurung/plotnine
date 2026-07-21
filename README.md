@@ -96,6 +96,15 @@ from plotnine_extra import facet_wrap2, guide_axis_manual
 
 ### Plot Composition
 
+Plot composition is provided by plotnine itself; `plotnine_extra` re-exports it
+so these names are importable from one place. The composing operators come from
+plotnine's own `ggplot`, so they never conflict with the composition objects.
+
+> **Requires plotnine ≥ 0.16** for `plot_layout`, `plot_annotation`, and `Wrap`
+> (the `+` grid operator). On older plotnine, `Compose`/`Beside`/`Stack` and the
+> `|` `/` `-` operators still work; the layout/annotation extras raise a clear
+> "requires plotnine>=0.16" error until you upgrade.
+
 Compose multiple plots using operators:
 
 - `|`: Arrange plots side by side (`Beside`)
@@ -152,8 +161,12 @@ ani.save("animation.gif")
 
 - Requires Python ≥ 3.10
 - Requires plotnine ≥ 0.15.3 and < 0.17
+- Plot composition layout/annotation extras require plotnine ≥ 0.16 (see above)
 
-> **Note:** The composition and animation modules use plotnine's internal APIs and may break with future plotnine updates. Pin your plotnine version if stability is critical.
+> **Note:** Composition delegates to plotnine's native composition, so it tracks
+> upstream automatically. The animation module and some stat/guide/facet helpers
+> still use plotnine's internal APIs and may need adjustment across plotnine
+> releases — see [`UPSTREAM_SYNC.md`](UPSTREAM_SYNC.md) for how syncing works.
 
 ## Development
 
