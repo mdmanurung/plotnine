@@ -35,6 +35,7 @@ from plotnine.stats.stat import stat
 from scipy import stats as _sps
 
 from ._common import (
+    drop_forwarded_kwarg,
     is_horizontal_orientation,
     preserve_panel_columns,
     require_vertical_orientation,
@@ -175,7 +176,7 @@ class stat_compare(stat):
         super().__init__(mapping, data, **kwargs)
         # ``label`` here is the *aesthetic* mapping; we should
         # not forward it to the geom as a literal value.
-        self._kwargs.pop("label", None)
+        drop_forwarded_kwarg(self, "label")
 
     # ------------------------------------------------------
     # compute_panel: detect mode + run tests

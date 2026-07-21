@@ -68,6 +68,23 @@ def add_wid_mapping(mapping, kwargs: dict):
     return mapping
 
 
+def drop_forwarded_kwarg(stat_obj, key: str) -> None:
+    """
+    Drop a stat parameter from the kwargs forwarded to the geom.
+
+    A ``stat`` stores the raw constructor kwargs so they can be handed to the
+    geom as static aesthetics. Parameters that only control the stat (e.g.
+    ``label``) must be removed so they are not passed on as literal aesthetic
+    values. Plotnine renamed this attribute from ``_kwargs`` to ``_raw_kwargs``
+    in 0.16, so look up both names.
+    """
+    raw = getattr(stat_obj, "_raw_kwargs", None)
+    if raw is None:
+        raw = getattr(stat_obj, "_kwargs", None)
+    if raw is not None:
+        raw.pop(key, None)
+
+
 def is_horizontal_orientation(
     data: pd.DataFrame,
     scales: object | None = None,

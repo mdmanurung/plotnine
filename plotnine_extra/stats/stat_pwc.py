@@ -17,6 +17,7 @@ from plotnine.stats.stat import stat
 
 from ._common import (
     add_wid_mapping,
+    drop_forwarded_kwarg,
     paired_values_by_wid,
     preserve_panel_columns,
     require_vertical_orientation,
@@ -154,11 +155,10 @@ class stat_pwc(stat):
             kwargs.pop("wid", None)
         super().__init__(mapping, data, **kwargs)
         self.params["wid"] = wid
-        # Remove 'label' from _kwargs so it is not forwarded
-        # to the geom as a static aesthetic value. The 'label'
-        # kwarg is a stat parameter controlling format (e.g.
-        # "p.signif"), not a literal label string.
-        self._kwargs.pop("label", None)
+        # 'label' is a stat parameter controlling format (e.g.
+        # "p.signif"), not a literal label string, so it must not
+        # be forwarded to the geom as a static aesthetic value.
+        drop_forwarded_kwarg(self, "label")
 
     def compute_panel(self, data, scales):
         require_vertical_orientation(data, "stat_pwc", scales)
