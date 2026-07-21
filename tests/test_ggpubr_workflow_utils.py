@@ -2,6 +2,18 @@ import pandas as pd
 import pytest
 from plotnine import aes, geom_point, ggplot, labs, scale_x_continuous
 
+# ggarrange(layout) and annotate_figure build on plotnine's composition
+# layout/annotation API, which is only available in plotnine >=0.16. Skip
+# those tests on older plotnine, where the helpers raise a clear upgrade error.
+_has_compose_layout = hasattr(
+    __import__("plotnine.composition._compose", fromlist=["Compose"]).Compose,
+    "layout",
+)
+requires_compose_layout = pytest.mark.skipif(
+    not _has_compose_layout,
+    reason="requires plotnine >=0.16 (composition layout/annotation)",
+)
+
 
 def test_ggpubr_workflow_utils_are_public():
     from plotnine_extra.utils import (
@@ -55,6 +67,7 @@ def test_compare_means_returns_deterministic_pairwise_table():
     assert result.loc[0, "p"] == pytest.approx(float(expected.pvalue))
 
 
+@requires_compose_layout
 def test_ggarrange_wraps_plots_with_layout():
     from plotnine_extra.composition import Wrap
     from plotnine_extra.utils import ggarrange
@@ -70,6 +83,7 @@ def test_ggarrange_wraps_plots_with_layout():
     assert arranged.layout.ncol == 2
 
 
+@requires_compose_layout
 def test_annotate_figure_adds_composition_annotation():
     from plotnine_extra.utils import annotate_figure, ggarrange
 
