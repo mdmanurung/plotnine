@@ -360,16 +360,21 @@ class facet_manual(facet):
             **ratios,
         )
 
-    def _make_axes(self) -> list["Axes"]:
-        self._panels_gridspec = self._get_panels_gridspec()
+    def _make_axes(self):
+        gs = self._get_panels_gridspec()
+        self._panels_gridspec = gs
         axs = []
         for _, row in self.layout.layout.sort_values("PANEL").iterrows():
             r0 = int(row["ROW"]) - 1
             c0 = int(row["COL"]) - 1
             r1 = r0 + int(row.get("ROWSPAN", 1))
             c1 = c0 + int(row.get("COLSPAN", 1))
-            spec = self._panels_gridspec[r0:r1, c0:c1]
+            spec = gs[r0:r1, c0:c1]
             axs.append(self.figure.add_subplot(spec))
+        # plotnine >=0.16 setup() unpacks (gridspec, axes) from _make_axes();
+        # <0.16 assigns the returned axes list directly.
+        if hasattr(self, "_make_gridspec"):
+            return gs, axs
         return axs
 
     def init_scales(

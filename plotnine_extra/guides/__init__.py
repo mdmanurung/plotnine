@@ -217,8 +217,15 @@ class guide_stringlegend(guide_legend):  # noqa: N801
         self.options = {"ncol": self.ncol, "nrow": self.nrow}
 
     def setup(self, guides):  # noqa: D102
+        # plotnine < 0.16 binds guides to the plot through setup().
         super().setup(guides)
         self._plot = guides.plot
+
+    def _bind_source(self, plot):
+        # plotnine >= 0.16 renamed the per-guide binding hook to
+        # _bind_source(plot); capture the plot reference here too.
+        super()._bind_source(plot)
+        self._plot = plot
 
     def __radd__(self, other):
         other.guides.color = self
@@ -238,10 +245,21 @@ class guide_stringlegend(guide_legend):  # noqa: N801
         targets.legend_title = title_box._text  # type: ignore[attr-defined]
 
         colour_values = _legend_layer_text_colours(self)
-        props = {"ha": elements.text.ha, "va": elements.text.va}
+        text = elements.text
+        if hasattr(text, "has"):
+            # plotnine >= 0.16: per-label horizontal/vertical alignments
+            alignments = list(zip(text.has, text.vas))
+        else:
+            # plotnine < 0.16: a single alignment shared by all labels
+            alignments = [(text.ha, text.va)] * len(colour_values)
         labels = [
-            TextArea(str(label), textprops={**props, "color": colour})
-            for label, colour in zip(self.key["label"], colour_values)
+            TextArea(
+                str(label),
+                textprops={"ha": ha, "va": va, "color": colour},
+            )
+            for label, colour, (ha, va) in zip(
+                self.key["label"], colour_values, alignments
+            )
         ]
         targets.legend_text_legend = [
             label._text

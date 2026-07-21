@@ -31,25 +31,42 @@ what creates a divergent branch you then have to merge.
 Delegation solves composition, but several extension modules reach into
 plotnine's **internal (underscore) APIs**, which plotnine changes without
 notice between releases. These are the surfaces to watch on every plotnine
-bump. Concrete breaks seen going from plotnine 0.15 → 0.16:
+bump. Every one below broke going from plotnine 0.15 → 0.16, and each is now
+handled **version-tolerantly** (the code works on both 0.15.x and 0.16):
 
-| Module | Internal it uses | 0.15 → 0.16 change |
-| --- | --- | --- |
-| `stats/` (`stat_pwc`, `stat_compare`, `stat_compare_means`) | stat instance kwargs | `self._kwargs` → `self._raw_kwargs` |
-| `guides/` (`guide_stringlegend`) | theme `guide_text` element | `.ha`/`.va` attributes changed |
-| `facets/` (`facet_manual`) | `facets/strips.py`, `facets/facet.py` layout hooks | strip/axes access signatures changed |
-| `animation.py` | figure/draw internals | verify each bump |
+| Module | Internal it uses | 0.15 → 0.16 change | How it is handled |
+| --- | --- | --- | --- |
+| `animation.py` | whole `PlotnineAnimation` + draw internals | `ggplot._sub_gridspec` draw wiring | **delegated** — re-exports `plotnine.animation.PlotnineAnimation` |
+| `stats/` (`stat_pwc`, `stat_compare`, `stat_compare_means`) | stat instance kwargs | `self._kwargs` → `self._raw_kwargs` | `_common.drop_forwarded_kwarg` looks up both names |
+| `guides/` (`guide_stringlegend`) | `guide_text` element + guide binding | scalar `.ha`/`.va` → per-label `.has`/`.vas`; `setup()` → `_bind_source()` | `hasattr` branch on `.has`; overrides both `setup` and `_bind_source` |
+| `facets/` (`facet_manual`) | `_make_axes`, panels-gridspec, strips | `_make_axes` returns `(gridspec, axes)`; `_get_panels_gridspec` → `_make_gridspec` | `_make_axes` returns the tuple only when `_make_gridspec` exists |
+| `facets/` (`panel_tools`: `at_panel`, `force_panelsizes`) | geom→layer, panels-gridspec | `geom.to_layer()` removed (use `layer(geom=…)`); method renamed | `hasattr` branches for both APIs |
 
-The stats break is already handled version-tolerantly via
-`plotnine_extra/stats/_common.py::drop_forwarded_kwarg` (it looks up both
-attribute names). The guides/facets breaks are **not yet migrated** — they work
-on stable plotnine (0.15.x) and only break on the 0.16 alphas, so they are
-deferred until plotnine 0.16 is adopted (see "Version policy" below).
+Animation, like composition, is **delegated** — plotnine ships
+`PlotnineAnimation` itself, so we re-export it and inherit its fixes for free.
+The rest are genuine extensions (ggh4x/ggpubr-style features plotnine does not
+provide), so they must track plotnine's internals; each carries a small
+version-tolerant shim rather than reading the changed attribute directly.
 
 When touching these modules, prefer plotnine's **public** API. Every use of an
 underscore-prefixed plotnine name is a future sync break waiting to happen; add
-a small version-tolerant shim (like `drop_forwarded_kwarg`) rather than reading
-the attribute directly.
+a `hasattr`-style shim that supports both the old and new plotnine spelling.
+
+### Image baselines track the *stable* plotnine
+
+Image-comparison baselines (`tests/baseline_images/`) are pixel-exact, so they
+are pinned to whatever plotnine CI runs — currently stable 0.15.7. plotnine's
+own rendering evolves between releases, so the same test can render differently
+on 0.16. Two consequences:
+
+- Geom/annotation image tests (`test_annotation_stripes`, `test_geom_pointdensity`,
+  `test_geom_spoke`) run on every plotnine, so their `-mpl311` baselines stay
+  **stable-based**. Do not overwrite them with 0.16 renders — that would break
+  the stable CI matrix.
+- Composition image tests only run on plotnine ≥0.16 (they self-skip otherwise),
+  so their `-mpl311` baselines are 0.16 renders.
+- The pre-release lane (below) therefore **deselects** the geom image tests,
+  since they would diff purely from plotnine's rendering changes.
 
 ## Version policy
 
@@ -59,8 +76,12 @@ the attribute directly.
   `ggarrange(layout=...)` / `annotate_figure` helpers) require plotnine `>=0.16`.
   On older plotnine they resolve to a stub that raises a clear upgrade error, so
   `import plotnine_extra` still works and only the extras are gated.
-- **When plotnine 0.16.0 ships stable:** raise the floor to `>=0.16`, migrate
-  the guides/facets internals above, and drop the gating stubs.
+- **Compatibility is already in place for 0.16:** the animation/guides/facets
+  internals above are handled version-tolerantly, so the package runs on both
+  0.15.x and the 0.16 alphas today.
+- **When plotnine 0.16.0 ships stable:** raise the floor to `>=0.16`, drop the
+  composition gating stubs, and regenerate the geom `-mpl311` baselines against
+  0.16 (they can then track 0.16 since that becomes the CI plotnine).
 
 ## Routine sync workflow
 
@@ -91,8 +112,17 @@ git fetch upstream --tags
 python -m venv /tmp/pe-pre && source /tmp/pe-pre/bin/activate
 pip install --pre "plotnine>=0.16.0a1,<0.17" scipy pytest
 pip install --no-deps -e .        # keep the pre-release plotnine
-python -m pytest tests/ -q
+# Deselect image tests: their baselines track the stable plotnine, so they
+# diff purely from 0.16's rendering, not from real breakage.
+python -m pytest tests/ -q \
+  --deselect tests/test_annotation_stripes.py \
+  --deselect tests/test_geom_pointdensity.py \
+  --deselect tests/test_geom_spoke.py
 ```
+
+This should be **all green** on the 0.16 alphas — the functional code is
+version-tolerant. To also check the CI configuration exactly (stable plotnine,
+newest matplotlib), install `plotnine==0.15.7` with `matplotlib>=3.11` instead.
 
 The composition image tests self-skip when the installed plotnine lacks the
 0.16 composition layout API, so a stable-plotnine run and a pre-release run both
