@@ -280,7 +280,12 @@ class TestRunStatTest:
         assert r.p_value != pytest.approx(
             sp_stats.ttest_ind(g1, g2, equal_var=True).pvalue
         )
-        assert r.df == pytest.approx(expected.df)
+        se1 = np.var(g1, ddof=1) / len(g1)
+        se2 = np.var(g2, ddof=1) / len(g2)
+        expected_df = (se1 + se2) ** 2 / (
+            se1**2 / (len(g1) - 1) + se2**2 / (len(g2) - 1)
+        )
+        assert r.df == pytest.approx(expected_df)
 
     def test_ttest_paired(self):
         g1 = np.array([1.0, 2, 3, 4, 5])

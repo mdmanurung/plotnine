@@ -33,6 +33,7 @@ from plotnine import (
     labs,
     scale_color_gradient,
 )
+from scipy.integrate import trapezoid
 
 from plotnine_extra.geoms import geom_quasirandom, geom_text_repel
 
@@ -373,9 +374,7 @@ def _roc_curve(
     fpr = np.r_[0, fps / negatives, 1]
     thresholds = np.r_[np.inf, y_score[threshold_idxs], -np.inf]
     roc_data = pd.DataFrame({"fpr": fpr, "tpr": tpr, "threshold": thresholds})
-    roc_data.attrs["auc"] = float(
-        np.trapezoid(roc_data["tpr"], roc_data["fpr"])
-    )
+    roc_data.attrs["auc"] = float(trapezoid(roc_data["tpr"], roc_data["fpr"]))
     return roc_data
 
 
