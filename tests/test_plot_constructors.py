@@ -71,6 +71,12 @@ def test_ggscatter_accepts_shape_mapping():
     plot.draw(show=False)
 
 
+def test_ggpaired_default_color_renders():
+    plot = ggpaired(grouped_data(), "group", "value", id="subject")
+
+    plot.draw(show=False)
+
+
 def test_ggbarplot_summary_deduplicates_aesthetic_groups():
     data = grouped_data()
 

@@ -260,7 +260,7 @@ def ggpaired(
     *,
     id: str,
     color: str | None = None,
-    line_color: str = "gray60",
+    line_color: str = "#999999",
     point_size: float = 2,
 ) -> ggplot:
     """Create a paired plot with observations connected by ``id``."""
