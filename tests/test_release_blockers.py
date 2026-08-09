@@ -441,7 +441,8 @@ def test_facet_manual_repeated_design_labels_render_spanning_axes():
         + facet_manual("g", design="AA\nBB")
     )
 
-    p.draw(show=False)
+    figure = p.draw(show=False)
+    figure.canvas.draw()
     top = p.axs[0].get_position()
     bottom = p.axs[1].get_position()
 

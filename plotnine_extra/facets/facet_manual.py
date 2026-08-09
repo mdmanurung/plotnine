@@ -13,8 +13,8 @@ from plotnine.facets.facet import (
     add_missing_facets,
     combine_vars,
     eval_facet_vars,
-    facet,
 )
+from plotnine.facets.facet_wrap import facet_wrap
 from plotnine.facets.strips import Strips, strip
 
 from ..guides import apply_axis_guides
@@ -54,7 +54,7 @@ def _parse_design(design: str) -> np.ndarray:
     return np.array(rows)
 
 
-class facet_manual(facet):
+class facet_manual(facet_wrap):
     """
     Manually specify panel layout via a design matrix.
 
@@ -105,6 +105,7 @@ class facet_manual(facet):
         trim_blank: bool = False,
     ):
         super().__init__(
+            facets=facets,
             scales=scales,
             shrink=shrink,
             labeller=labeller,
